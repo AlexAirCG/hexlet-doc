@@ -1,41 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1778676893199" clover="3.2.0">
-  <project timestamp="1778676893199" name="All files">
-    <metrics statements="14" coveredstatements="14" conditionals="8" coveredconditionals="8" methods="3" coveredmethods="3" elements="25" coveredelements="25" complexity="0" loc="14" ncloc="14" packages="3" files="4" classes="4"/>
-    <package name="memFibonacci">
-      <metrics statements="9" coveredstatements="9" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
-      <file name="index.js" path="/home/aleksandr/hexlet-doc/src/memFibonacci/index.js">
-        <metrics statements="3" coveredstatements="3" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
-        <line num="4" count="1" type="stmt"/>
-        <line num="10" count="1" type="cond" truecount="2" falsecount="0"/>
-        <line num="11" count="1" type="stmt"/>
-      </file>
-      <file name="utils.js" path="/home/aleksandr/hexlet-doc/src/memFibonacci/utils.js">
-        <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="4" methods="1" coveredmethods="1"/>
-        <line num="1" count="1" type="stmt"/>
-        <line num="4" count="372" type="cond" truecount="2" falsecount="0"/>
-        <line num="5" count="1" type="stmt"/>
-        <line num="8" count="371" type="cond" truecount="2" falsecount="0"/>
-        <line num="9" count="188" type="stmt"/>
-        <line num="11" count="183" type="stmt"/>
-      </file>
-    </package>
-    <package name="memFibonacci.right">
-      <metrics statements="5" coveredstatements="5" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
-      <file name="index.js" path="/home/aleksandr/hexlet-doc/src/memFibonacci/right/index.js">
-        <metrics statements="5" coveredstatements="5" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
-        <line num="3" count="1" type="stmt"/>
-        <line num="7" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="8" count="1" type="stmt"/>
-        <line num="11" count="1" type="stmt"/>
-        <line num="12" count="1" type="stmt"/>
-      </file>
-    </package>
-    <package name="memFibonacci.wrong">
-      <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-      <file name="index.js" path="/home/aleksandr/hexlet-doc/src/memFibonacci/wrong/index.js">
-        <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-      </file>
-    </package>
+<coverage generated="1778691354169" clover="3.2.0">
+  <project timestamp="1778691354169" name="All files">
+    <metrics statements="4" coveredstatements="4" conditionals="5" coveredconditionals="5" methods="1" coveredmethods="1" elements="10" coveredelements="10" complexity="0" loc="4" ncloc="4" packages="1" files="1" classes="1"/>
+    <file name="num-4.js" path="/home/aleksandr/hexlet-doc/src/chapter_Function_JS/num-4.js">
+      <metrics statements="4" coveredstatements="4" conditionals="5" coveredconditionals="5" methods="1" coveredmethods="1"/>
+      <line num="11" count="1" type="cond" truecount="1" falsecount="0"/>
+      <line num="12" count="7" type="cond" truecount="4" falsecount="0"/>
+      <line num="13" count="3" type="stmt"/>
+      <line num="14" count="3" type="stmt"/>
+    </file>
   </project>
 </coverage>
