@@ -14,7 +14,8 @@
   "dependencies": {
     "crc": "^4.3.2",
     "crc-32": "^1.2.2",
-    "lodash": "^4.17.23"
+    "lodash": "^4.17.23",
+    "papaparse": "^5.5.3"
   },
   "devDependencies": {
     "@eslint/create-config": "^1.11.0",
