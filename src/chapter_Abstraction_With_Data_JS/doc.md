@@ -129,19 +129,6 @@ calculateDistance(point1, point2) // 5
 Подсказки
 Формула расчета расстояния между двумя точками: Math.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2)), где x1, y1 — это координаты первой точки, а x2, y2 — координаты второй
 
-```js
-// my solution
-const calculateDistance = (point1, point2) => {
-  const [x1, y1] = point1
-  const [x2, y2] = point2
-  const result = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-
-  return result
-}
-
-export default calculateDistance
-```
-
 <details>
   <summary>Посмотреть решение</summary>
 
@@ -155,12 +142,6 @@ const calculateDistance = (point1, point2) => {
   return result
 }
 
-export default calculateDistance
-```
-
-</details>
-
-```js
 // teacher solution
 const calculateDistance = (point1, point2) => {
   const deltaX = point2[0] - point1[0]
@@ -173,15 +154,13 @@ const calculateDistance = (point1, point2) => {
   // return Math.hypot(deltaX, deltaY);
 }
 
-export default calculateDistance
-```
-
-```js
 // solution 3
 const calculateDistance = ([x1, y1], [x2, y2]) => {
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 }
 ```
+
+</details>
 
 ТЕОРИЯ: СЕМАНТИКА МАССИВОВ ==================================
 
