@@ -683,3 +683,676 @@ export const containsOrigin = (rectangle) => {
 </details>
 
 ТЕОРИЯ: ИНВАРИАНТЫ =============================================
+
+Абстракция позволяет нам не думать о деталях реализации и сосредоточиться на её использовании. Более того, при необходимости реализацию абстракции можно всегда переписать, не боясь сломать использующий её код. Но есть ещё одна важная причина, по которой нужно использовать абстракцию — соблюдение инвариантов.
+
+Инвариант в программировании — логическое выражение, определяющее непротиворечивость состояния (набора данных).
+
+Разберёмся на примере. Когда мы описали конструктор и селекторы для рациональных чисел, то неявно подразумевали выполнение следующих инвариантов:
+
+```js
+const num = makeRational(numer, denom)
+numer === getNumer(num) // true
+denom === getDenom(num) // true
+
+// Или с учётом нормализации
+// numer / denom === getNumer(num) / getDenom(num);
+```
+
+Передав в конструктор рационального числа числитель и знаменатель, мы ожидаем, что получим их (те же числа), если применим селекторы к этому рациональному числу. Именно так определяется корректность работы данной абстракции. Этот код практически является тестами!
+
+Инварианты существуют относительно любой операции. И иногда они довольно хитрые. Например, рациональные числа можно сравнивать между собой, но не прямым способом, потому, что одни и те же дроби можно представлять разными способами: 1/2 и 2/4. Код, который не учитывает этого факта, работает некорректно:
+
+```js
+const num1 = makeRational(2, 4)
+const num2 = makeRational(8, 16)
+
+console.log(num1 === num2) // false
+```
+
+Задача приведения дроби к нормальной форме называется нормализацией. В это понятие входит несколько операций, например, сокращение дроби, определение знака, перенос знака в числитель. Реализовать нормализацию можно разными способами. Самый очевидный — выполнять её во время создания дроби, внутри функции makeRational(). Другой — выполнять нормализацию уже при обращении через функции getNumer() и getDenom(). Последний способ обладает недостатком — вычисление нормальной формы происходит на каждый вызов. Избежать этого можно, используя технику мемоизации.
+
+Учитывая новые вводные, становится понятно, что инвариант, связывающий конструктор и селекторы, нуждается в модификации. Функции getNumer() и getDenom() должны вернуть не переданные значения, а значения после нормализации (если дробь уже нормализована, то это будут те же самые значения).
+
+```js
+const num = makeRational(10, 20)
+getNumer(num) // 1
+getDenom(num) // 2
+```
+
+Абстракция не только прячет от нас реализацию, но и отвечает за соблюдение инвариантов. Любая работа в обход абстракции чревата тем, что не будут учтены внутренние преобразования:
+
+```js
+// Обход конструктора
+
+// Эти данные не нормализованы, потому что не использовался конструктор
+const num = { numer: 10, denom: 20 }
+
+// Возвращается не то, что должно (ожидается нормализованный возврат):
+getNumer(num) // 10
+getDenom(num) // 20
+
+// Прямая модификация
+
+const num = makeRational(10, 20)
+// тут не может быть нормализации, так как прямое изменение
+num.numer = 40
+
+getNumer(num) // 40
+getDenom(num) // 2
+```
+
+То есть работа с данными напрямую, минуя абстракцию, может легко сломать инварианты, которые обеспечивались дополнительной логикой в конструкторе или селекторах. Поэтому важно пользоваться кодом так, как было задумано авторами.
+
+Глядя на примеры выше, возникает закономерный вопрос. А можно ли сделать так, чтобы обойти абстракцию было нельзя? Глобально – да. Такой подход называют сокрытием данных (data hiding). Обычно для обеспечения сокрытия в языках используется специальный синтаксис. Однако, защиту данных можно организовать и без специальных средств, только за счёт функций высшего порядка. Данный способ основан на создании абстракций с помощью анонимных функций, замыканий и передачи сообщений (подробнее в SICP). Если вы хотите узнать об этом больше, то попробуйте наш курс JS: Составные данные
+
+Испытание-6: ИНВАРИАНТЫ
+
+Реализуйте абстракцию для работы с рациональными числами, включающую в себя следующие функции:
+
+Конструктор makeRational() - принимает на вход числитель и знаменатель, возвращает дробь в виде объекта.
+Селектор getNumer() - возвращает числитель
+Селектор getDenom() - возвращает знаменатель
+Сложение add() - складывает переданные дроби
+Вычитание sub() - находит разность между двумя дробями
+Не забудьте реализовать нормализацию дробей удобным для вас способом.
+
+```js
+const rat1 = makeRational(3, 9)
+getNumer(rat1) // 1
+getDenom(rat1) // 3
+
+const rat2 = makeRational(10, 3)
+
+const rat3 = add(rat1, rat2)
+ratToString(rat3) // '11/3'
+
+const rat4 = sub(rat1, rat2)
+ratToString(rat4) // '-3/1'
+```
+
+Подсказки
+Действия с дробями
+Функция getGcd() находит наибольший общий делитель двух чисел (уже импортирована в модуль)
+Функция ratToString() возвращает строковое представление числа (используется для отладки)
+В решении исходите из того, что в знаменателе всегда положительное число. Учитывайте знак только в числителе
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// solution
+const getGcd = (a, b) => (b === 0 ? Math.abs(a) : getGcd(b, a % b))
+
+export const makeRational = (numer, denom) => {
+  const commonDivisor = getGcd(numer, denom)
+  let normalizedNumer = numer / commonDivisor
+  let normalizedDenom = denom / commonDivisor
+
+  if (normalizedDenom < 0) {
+    normalizedNumer = -normalizedNumer
+    normalizedDenom = -normalizedDenom
+  }
+
+  return { numer: normalizedNumer, denom: normalizedDenom }
+}
+
+export const getNumer = (rational) => rational.numer
+export const getDenom = (rational) => rational.denom
+
+export const add = (rational1, rational2) => {
+  const n1 = getNumer(rational1)
+  const d1 = getDenom(rational1)
+  const n2 = getNumer(rational2)
+  const d2 = getDenom(rational2)
+
+  const resultNumer = n1 * d2 + n2 * d1
+  const resultDenom = d1 * d2
+
+  return makeRational(resultNumer, resultDenom)
+}
+
+export const sub = (rational1, rational2) => {
+  const n1 = getNumer(rational1)
+  const d1 = getDenom(rational1)
+  const n2 = getNumer(rational2)
+  const d2 = getDenom(rational2)
+
+  const resultNumer = n1 * d2 - n2 * d1
+  const resultDenom = d1 * d2
+
+  return makeRational(resultNumer, resultDenom)
+}
+
+export const ratToString = (rat) => `${getNumer(rat)}/${getDenom(rat)}`
+```
+
+</details>
+
+Испытание-7: ОБРАБОТКА ССЫЛОК
+
+Реализуйте абстракцию для работы с урлами. Она должна извлекать и менять части адреса. Интерфейс:
+
+- make(url) - Конструктор. Создает урл.
+- setProtocol(data, protocol) - Сеттер. Меняет схему.
+- getProtocol(data) - Селектор (геттер). Извлекает схему.
+- setHost(data, host) - Сеттер. Меняет хост.
+- getHost(data) - Геттер. Извлекает хост.
+- setPath(data, path) - Сеттер. Меняет строку запроса.
+- getPath(data) - Геттер. Извлекает строку запроса.
+- setQueryParam(data, key, value) - Сеттер. Устанавливает значение для параметра запроса.
+- getQueryParam(data, paramName, defaultValue = null) - Геттер. Извлекает значение для параметра запроса. Третьим параметром функция принимает значение по умолчанию, которое возвращается тогда, когда в запросе не было такого параметра
+- toString(data) - Геттер. Преобразует урл в строковой вид.
+
+```js
+const url = make('https://hexlet.io/community?q=low')
+
+setProtocol(url, 'http:')
+toString(url) // 'http://hexlet.io/community?q=low'
+
+setPath(url, '/404')
+toString(url) // 'http://hexlet.io/404?q=low'
+
+setQueryParam(url, 'page', 5)
+toString(url) // 'http://hexlet.io/404?q=low&page=5'
+
+setQueryParam(url, 'q', 'high')
+toString(url) // 'http://hexlet.io/404?q=high&page=5'
+```
+
+Подсказки
+Используйте стандартный объект URL для работы с адресами: URL
+Методы set() и get()
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// solution
+const make = (urlAddress) => {
+  const data = new URL(urlAddress)
+
+  return data
+}
+
+const getProtocol = (data) => data.protocol
+const getHost = (data) => data.host
+const getPath = (data) => data.pathname
+
+const getQueryParam = (data, paramName, defaultValue = null) =>
+  data.searchParams.get(paramName) || defaultValue
+
+const setHost = (data, host) => {
+  data.host = host
+}
+
+const setPath = (data, path) => {
+  data.pathname = path
+}
+
+const setProtocol = (data, protocol) => {
+  data.protocol = protocol
+}
+
+const setQueryParam = (data, key, value) => {
+  data.searchParams.set(key, value)
+}
+
+const toString = (data) => data.toString()
+
+export {
+  make,
+  getProtocol,
+  getHost,
+  getPath,
+  setProtocol,
+  setHost,
+  setPath,
+  getQueryParam,
+  setQueryParam,
+  toString,
+}
+```
+
+</details>
+
+Испытание-8: ОНЛАЙН-МАГАЗИН
+
+Реализуйте абстракцию для работы c каталогом товаров онлайн-магазина. Она содержит следующие сущности:
+
+- Каталог товаров
+- Товар: id, название, цена
+- Корзина
+- Заказы
+
+Необходимо реализовать следующую функциональность:
+
+- addProduct(catalog, product) — добавление и удаление товара из каталога
+  - catalog — каталог товаров
+  - product — товар
+
+- getProductById(catalog, id) — получение товара по id
+  - catalog — каталог товаров
+  - id — идентификатор товара
+
+- addToCart(catalog, cart, id, quantity) — добавление товара в корзину
+  - catalog — каталог товаров
+  - cart — корзина
+  - id — идентификатор товара
+  - quantity — количество товара
+
+- placeOrder(cart, orders) — оформление заказа, после оформления заказа корзина обнуляется
+  - cart — корзина
+  - orders — заказы
+
+```js
+const catalog = {
+  1: { id: 1, name: 'молоко', price: 100 },
+  2: { id: 2, name: 'сыр', price: 200 },
+}
+
+// Добавляем товар в каталог
+const product = { id: 3, name: 'чипсы', price: 100 }
+const updatedCatalog = addProduct(catalog, product) // =>
+// {
+//   '1': { id: 1, name: 'молоко', price: 100 },
+//   '2': { id: 2, name: 'сыр', price: 200 },
+//   '3': { id: 3, name: 'чипсы', price: 100 }
+// }
+
+// Удаляем товар из каталога
+const updatedCatalog = removeProduct(catalog, 3) // =>
+// {
+//   '1': { id: 1, name: 'молоко', price: 100 },
+//   '2': { id: 2, name: 'сыр', price: 200 }
+// }
+
+// Добавляем товары в корзину
+let cart = []
+cart = addToCart(catalog, cart, 2, 2)
+cart = addToCart(catalog, cart, 1, 1)
+console.log(cart) // =>
+// [
+//   { id: 2, name: 'сыр', price: 200, quantity: 2 },
+//   { id: 1, name: 'молоко', price: 100, quantity: 1 }
+// ]
+
+// Оформляем заказ
+const orders = {}
+const { newCart, newOrders } = placeOrder(cart, orders)
+console.log(newCart) // [];
+console.log(newOrders) // =>
+// {
+//   order_1: {
+//     id: 'order_1',
+//     items: [
+//       {
+//         id: 2,
+//         name: сыр,
+//         price: 200,
+//         quantity: 2
+//       },
+//       {
+//         id: 1,
+//         name: молоко,
+//         price: 100,
+//         quantity: 1
+//       }
+//     ],
+//     totalAmount: 500
+//   }
+// }
+```
+
+Подсказки
+Для создания id можно воспользоваться функцией uniqueId из библиотеки es-toolkit
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// solution my
+import { uniqueId } from 'es-toolkit/compat'
+
+export const addProduct = (catalog, product) => {
+  const id = product.id || Number(uniqueId())
+  return {
+    ...catalog,
+    [id]: { ...product, id },
+  }
+}
+
+export const removeProduct = (catalog, product) => {
+  const newCatalog = { ...catalog }
+  delete newCatalog[product.id]
+  return newCatalog
+}
+
+export const getProductById = (catalog, id) => {
+  return catalog[id]
+}
+
+export const addToCart = (catalog, cart, id, quantity) => {
+  const product = catalog[id]
+
+  if (!product) return cart
+
+  const itemIndex = cart.findIndex((item) => item.id === id)
+
+  if (itemIndex > -1) {
+    return cart.map((item, index) =>
+      index === itemIndex
+        ? { ...item, quantity: item.quantity + quantity }
+        : item,
+    )
+  }
+
+  return [...cart, { ...product, quantity }]
+}
+
+export const placeOrder = (cart, orders) => {
+  if (cart.length === 0) {
+    return { newCart: cart, newOrders: orders }
+  }
+
+  const orderId = uniqueId()
+
+  const totalAmount = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  )
+
+  const newOrders = {
+    id: orderId,
+    items: cart,
+    totalAmount,
+  }
+
+  return {
+    newCart: [],
+    newOrders: {
+      ...orders,
+      [orderId]: newOrders,
+    },
+  }
+}
+
+// solution teacher
+import { uniqueId } from 'es-toolkit/compat'
+
+export const addProduct = (catalog, product) => {
+  const newCatalog = {
+    ...catalog,
+    [product.id]: product,
+  }
+  return newCatalog
+}
+
+export const removeProduct = (catalog, productId) =>
+  Object.entries(catalog)
+    .filter(([key]) => parseInt(key, 10) !== productId)
+    .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
+
+export const getProductById = (catalog, id) => {
+  return catalog[id]
+}
+
+export const addToCart = (catalog, cart, productId, quantity) => {
+  const existingCartIndex = cart.findIndex((item) => item.id === productId)
+
+  if (existingCartIndex !== -1) {
+    return [
+      ...cart.slice(0, existingCartIndex),
+      {
+        ...cart[existingCartIndex],
+        quantity: cart[existingCartIndex].quantity + quantity,
+      },
+      ...cart.slice(existingCartIndex + 1),
+    ]
+  }
+
+  const product = getProductById(catalog, productId)
+
+  if (!product) {
+    throw new Error('Товар не найден')
+  }
+
+  return [...cart, { ...product, quantity }]
+}
+
+export const placeOrder = (cart, orders) => {
+  if (cart.length === 0) {
+    throw new Error('Корзина пуста')
+  }
+
+  const orderId = uniqueId('order_')
+
+  const totalAmount = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  )
+
+  const order = {
+    id: orderId,
+    items: [...cart],
+    totalAmount,
+  }
+
+  const updatedOrders = {
+    ...orders,
+    [orderId]: order,
+  }
+
+  return { newCart: [], newOrders: updatedOrders }
+}
+```
+
+</details>
+
+Испытание: СПИСОК ДЕЛ
+
+Реализуйте абстракцию для работы со списком дел с тегами.
+
+Cущность Задача (task) должна быть представлена объектом со следующими свойствами:
+
+- Описание задачи - строка
+- Статус задачи - выполнена или нет, булево значение
+- Теги - массив строк, связанных с этой задачей
+
+Необходимо реализовать следующую функциональность:
+
+- createTask(description, tags) - создаёт и возвращает новый объект задачи с заданными описанием и тегами. Убедитесь, что в созданной задаче в поле tags нет дубликатов.
+- addTask(tasks, task) - добавляет задачу в глобальный список tasks и возвращает новый список.
+- addTagToTask(tasks, taskId, tag) - добавляет тег к задаче, если его там ещё нет.
+- removeTagFromTask(tasks, taskId, tag) - удаляет тег у задачи.
+- markTaskCompleted(tasks, taskId) - помечает задачу как выполненную.
+- filterTasksByTags(tasks, filterTags) - получает массив тегов и возвращает новый массив, содержащий только задачи, у которых есть все указанные теги. Если filterTags не указан, то возвращается массив всех задач
+
+```js
+// Создаем задачу
+const task1 = createTask('Task 1', ['tag1', 'tag2', 'tag2'])
+// => {
+// id: 1,
+// description: 'Task 1',
+// completed: false,
+// tags: ['tag1', 'tag2']
+// }
+
+// Добавляем в список дел
+addTask(tasks, task)
+// => [
+// { id: 1, description: 'Task 1', completed: false, tags: ['tag1', 'tag2'] },
+// ]
+
+// Добавляем новый тег к задаче
+addTagToTask(tasks, 1, 'tag3')
+// => {
+// id: 1,
+// description: 'Task 1',
+// completed: false,
+// tags: ['tag1', 'tag2', 'tag3']
+// }
+
+// Удаляем тег
+removeTagFromTask(tasks, 1, 'tag1')
+// => {
+// id: 1,
+// description: 'Task 1',
+// completed: false,
+// tags: ['tag2', 'tag3']
+// }
+
+// Фильтрация по тегу
+filterTasksByTags(tasks, 'tag5') // [];
+Каждая функция должна возвращать список с обновленными данными.
+
+Подсказки
+Используйте функции для работы с массивами: filter, map, every
+Для создания id можно воспользоваться функцией uniqueId из библиотеки es-toolkit
+```
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// solution my
+import { uniqueId } from 'es-toolkit/compat'
+
+// создаёт и возвращает новый объект задачи с заданными описанием и тегами
+export const createTask = (description, tags) => {
+  const taskId = Number(uniqueId())
+  const uniqTags = [...new Set(tags)]
+
+  const newTask = {
+    id: taskId,
+    description,
+    completed: false,
+    tags: uniqTags,
+  }
+  return newTask
+}
+
+// добавляет задачу в глобальный список tasks и возвращает новый список
+export const addTask = (tasks, task) => {
+  const newTasks = [...tasks, task]
+  return newTasks
+}
+
+// добавляет тег к задаче, если его там ещё нет
+export const addTagToTask = (tasks, taskId, tag) => {
+  return tasks.map((task) => {
+    if (task.id !== taskId) {
+      return task
+    }
+
+    return {
+      ...task,
+      tags: [...new Set([...task.tags, tag])],
+    }
+  })
+}
+
+// удаляет тег у задачи
+export const removeTagFromTask = (tasks, taskId, tag) => {
+  return tasks.map((task) => {
+    if (task.id !== taskId) {
+      return task
+    }
+
+    return {
+      ...task,
+      tags: task.tags.filter((t) => t !== tag),
+    }
+  })
+}
+
+// помечает задачу как выполненную
+export const markTaskCompleted = (tasks, taskId) => {
+  return tasks.map((task) => {
+    if (task.id !== taskId) {
+      return task
+    }
+
+    return {
+      ...task,
+      completed: true,
+    }
+  })
+}
+
+// получает массив тегов и возвращает новый массив, содержащий только задачи, у которых есть все указанные теги. Если filterTags не указан, то возвращается массив всех задач
+export const filterTasksByTags = (tasks, filterTags) => {
+  if (!filterTags || filterTags.length === 0) {
+    return tasks
+  }
+
+  return tasks.filter((task) =>
+    filterTags.every((tag) => task.tags.includes(tag)),
+  )
+}
+// solution teacher
+import { uniqueId } from 'es-toolkit/compat'
+
+export const createTask = (description, tags = []) => {
+  const uniqTags = new Set(tags)
+  const newTask = {
+    id: uniqueId(),
+    description,
+    completed: false,
+    tags: [...uniqTags],
+  }
+  return newTask
+}
+
+export const addTask = (tasks, task) => [...tasks, task]
+
+export const addTagToTask = (tasks, taskId, tag) => {
+  return tasks.map((t) => {
+    if (t.id === taskId) {
+      if (!t.tags.includes(tag)) {
+        return {
+          ...t,
+          tags: [...t.tags, tag],
+        }
+      }
+    }
+    return t
+  })
+}
+
+export const removeTagFromTask = (tasks, taskId, tag) => {
+  return tasks.map((t) => {
+    if (t.id === taskId) {
+      return {
+        ...t,
+        tags: t.tags.filter((currTag) => currTag !== tag),
+      }
+    }
+    return t
+  })
+}
+
+export const markTaskCompleted = (tasks, taskId) => {
+  return tasks.map((t) => {
+    if (t.id === taskId) {
+      return {
+        ...t,
+        completed: true,
+      }
+    }
+    return t
+  })
+}
+
+export const filterTasksByTags = (tasks, filterTags = []) => {
+  if (filterTags.length === 0) {
+    return tasks
+  }
+
+  return tasks.filter((task) =>
+    filterTags.every((tag) => task.tags.includes(tag)),
+  )
+}
+```
+
+</details>
