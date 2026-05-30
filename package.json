@@ -12,6 +12,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@hexlet/immutable-fs-trees": "^0.7.2",
     "crc": "^4.3.2",
     "crc-32": "^1.2.2",
     "es-toolkit": "^1.46.1",
