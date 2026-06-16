@@ -201,6 +201,7 @@ console.log(newCart) // [];
 console.log(newOrders)
 // */
 
+/*
 import { addProduct, removeProduct } from './trial-8.js'
 
 const catalog = {
@@ -213,3 +214,4 @@ const updatedCatalog = addProduct(catalog, product)
 console.log(updatedCatalog)
 const updateProduct = removeProduct(updatedCatalog, 3)
 console.log(updateProduct)
+// */
