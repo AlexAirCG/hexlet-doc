@@ -73,7 +73,10 @@ const makeJoints = (tree, parent) => {
 
   return {
     [leaf]: neighbors,
-    ...children.reduce((acc, c) => ({ ...acc, ...makeJoints(c, leaf) }), {}),
+    ...children.reduce(
+      (acc, child) => ({ ...acc, ...makeJoints(child, leaf) }),
+      {},
+    ),
   }
 }
 
@@ -86,9 +89,9 @@ const findRoute = (start, finish, joints) => {
     }
 
     const neighbors = joints[current]
-    const filtred = neighbors.filter((n) => !routeToCurrent.includes(n))
+    const filtered = neighbors.filter((n) => !routeToCurrent.includes(n))
 
-    return filtred.reduce((acc, n) => acc.concat(iter(n, routeToCurrent)), [])
+    return filtered.reduce((acc, n) => acc.concat(iter(n, routeToCurrent)), [])
   }
 
   return iter(start, [])
@@ -115,6 +118,24 @@ const makeJoints = (tree, parent) => {
   // 5. Запустить эту же функцию для каждого ребенка и склеить их объекты в один общий справочник
   // 6. Вернуть объект: связать текущий город со списком его соседей + подмешать справочник детей
 }
+
+const makeJoints = (tree, parent) => {
+  const [leaf, children] = tree // это чтобы разложить текущий узел дерева по полочкам, достав имя города в переменную leaf и массив его потомков в переменную children.
+
+  if (!children) { // это чтобы проверить самый простой базовый случай: есть ли у этого города ветки-дети дальше.
+    return { [leaf]: [parent] } // это чтобы в случае тупика (когда детей нет) сразу вернуть маленький справочник, где этот тупиковый город связан массивом со своим единственным родителем.
+  } // это чтобы закрыть условие проверки тупика.
+
+  const flatChildren = children.flat() // это чтобы сгладить массив детей на один уровень вниз и вытащить имена прямых подчинённых городов в один плоский список строк.
+  const neighbors = [...flatChildren, parent].filter( // это чтобы объединить всех детей и родителя текущего города в один черновой массив и запустить сито-фильтр для его очистки.
+    (n) => n && !Array.isArray(n), // это чтобы выбросить из списка соседей пустые значения (undefined у корня) и вложенные массивы с глубокими детьми, оставив только чистые строки-имена.
+  ) // это чтобы закрыть метод фильтрации.
+
+  return {
+    [leaf]: neighbors, // это чтобы записать в итоговую карту строчку для текущего города, связав его имя с только что очищенным списком его прямых соседей.
+    ...children.reduce((acc, c) => ({ ...acc, ...makeJoints(c, leaf) }), {}), // это чтобы отправить всех детей в рекурсию (где текущий город станет для них родителем), а затем с помощью трёх точек "растворить" скобки и ссыпать все их справочники в один наш большой итоговый объект.
+  } // это чтобы закрыть возвращаемый объект.
+} // это чтобы закрыть функцию makeJoints.
 
 const findRoute = (start, finish, joints) => {
   const iter = (current, route) => {

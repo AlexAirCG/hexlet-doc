@@ -1819,7 +1819,9 @@ export default stringify
 
 </details>
 
+========================================================================
 Испытание-12: ПОСТРОЕНИЕ МАРШРУТА
+========================================================================
 
 Реализуйте и экспортируйте по умолчанию функцию, которая выстраивает маршрут между городами.
 
@@ -2381,6 +2383,8 @@ const result = reduce((acc, n) => acc + 1, tree, 0); // 3
 
 ```js
 // my solution
+import * as fsTrees from '@hexlet/immutable-fs-trees'
+
 export const map = (f, tree) => {
   const updateNode = f(tree)
 
@@ -2441,6 +2445,9 @@ export const reduce = (f, tree, acc) => {
 }
 
 // teacher solution
+import * as fsTrees from '@hexlet/immutable-fs-trees'
+import { cloneDeep } from 'es-toolkit'
+
 export const map = (f, node) => {
   const nodeClone = cloneDeep(node)
   const updatedNode = f(nodeClone)

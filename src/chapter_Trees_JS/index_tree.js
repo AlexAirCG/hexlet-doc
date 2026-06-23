@@ -639,8 +639,7 @@ const html = buildHtml(filterTree)
 console.log(html)
 // */
 
-//*
-
+/*
 const tree = {
   name: 'div',
   type: 'tag-internal',
@@ -681,4 +680,68 @@ const changeClass = (tree, oldClass, newClass) => {
 
 const result = changeClass(tree, 'old-class', 'new-class')
 console.log(result)
+// */
+
+/*
+// reduce
+import * as fsTrees from '@hexlet/immutable-fs-trees'
+import { cloneDeep } from 'es-toolkit'
+
+const tree = fsTrees.mkdir('/', [
+  fsTrees.mkdir('eTc', [fsTrees.mkfile('config.json')]),
+])
+
+const reduce = (f, node, acc) => {
+  const nodeClone = cloneDeep(node) // это что бы ...
+  let newAcc = f(acc, nodeClone) // это что бы ...
+
+  if (fsTrees.isFile(node)) {
+    return newAcc
+  }
+
+  const children = fsTrees.getChildren(nodeClone)
+
+  for (let child of children) {
+    newAcc = reduce(f, child, newAcc)
+  }
+
+  return newAcc
+}
+// */
+
+/*
+const reduce = (f, node, acc) => {
+  const nodeClone = cloneDeep(node) // это чтобы создать защищённую копию текущего узла и гарантировать, что чужая функция "f" случайно не испортит (не мутирует) наше оригинальное дерево.
+
+  let newAcc = f(acc, nodeClone) // это чтобы применить к текущему узлу правило (функцию "f"), которое попросил пользователь, и обновить наш счётчик/массив, сохранив свежий результат в переменную newAcc.
+
+  if (fsTrees.isFile(node)) { // это чтобы проверить, является ли текущий узел обычным файлом (монолитным предметом, в который нельзя заглянуть внутрь).
+    return newAcc // это чтобы сразу вернуть наш обновлённый счётчик newAcc обратно наверх и завершить работу на этой ветке, так как у файла нет детей и считать дальше нечего.
+  } // это чтобы закрыть условие проверки файла.
+
+  const children = fsTrees.getChildren(nodeClone) // это чтобы открыть текущую папку (раз узел не оказался файлом) и достать из неё плоский список всех лежащих внутри коробчонков-детей.
+
+  for (let child of children) { // это чтобы по очереди запустить перебор каждого извлечённого ребёнка из списка детей.
+    newAcc = reduce(f, child, newAcc) // это чтобы отправить текущего ребёнка в рекурсивный подсчёт, передав ему наш актуальный счётчик newAcc, и тут же перезаписать newAcc новой цифрой, которую вернёт этот ребёнок.
+  } // это чтобы закрыть цикл перебора детей.
+
+  return newAcc // это чтобы вернуть финальное, накопленное за весь цикл по всем детям значение счётчика newAcc на базу как итог работы.
+} // это чтобы закрыть функцию reduce.
+// */
+
+/*
+// Подсчитываем количество узлов в дереве:
+const result2 = reduce((acc) => acc + 1, tree, 0) // 3
+const result3 = reduce(
+  (acc, n) => {
+    if (fsTrees.isFile(n)) {
+      return [...acc, fsTrees.getName(n)]
+    }
+    return acc
+  },
+  tree,
+  [],
+)
+console.log(result2)
+console.log(result3)
 // */
