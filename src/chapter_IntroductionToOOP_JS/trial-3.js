@@ -5,18 +5,12 @@ const bind = (obj, fn) => {
 }
 
 // пример
-// const obj1 = { number: 5 }
-// const fn1 = function fn1(number) {
-//   return number + this.number
-// }
-const obj1 = {
-  number: 5,
-  fn1(number) {
-    return number + this.number
-  },
+const obj1 = { number: 5 }
+const fn1 = function fn1(number) {
+  return number + this.number
 }
 
-const fnWithContext = bind(obj1, obj1.fn1)
+const fnWithContext = bind(obj1, fn1)
 
 // Принимает столько же аргументов сколько и исходная функция
 console.log(fnWithContext(4)) // 8

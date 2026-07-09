@@ -59,6 +59,7 @@ export default itinerary
 // */
 
 //*
+// teacher solution
 const makeJoints = (tree, parent) => {
   const [leaf, children] = tree
 
@@ -73,17 +74,13 @@ const makeJoints = (tree, parent) => {
 
   return {
     [leaf]: neighbors,
-    ...children.reduce(
-      (acc, child) => ({ ...acc, ...makeJoints(child, leaf) }),
-      {},
-    ),
+    ...children.reduce((acc, c) => ({ ...acc, ...makeJoints(c, leaf) }), {}),
   }
 }
 
-const findRoute = (start, finish, joints) => {
+const routeFind = (start, finish, joints) => {
   const iter = (current, route) => {
     const routeToCurrent = [...route, current]
-
     if (current === finish) {
       return routeToCurrent
     }
@@ -99,7 +96,7 @@ const findRoute = (start, finish, joints) => {
 
 const itinerary = (tree, start, finish) => {
   const joints = makeJoints(tree)
-  return findRoute(start, finish, joints)
+  return routeFind(start, finish, joints)
 }
 
 export default itinerary

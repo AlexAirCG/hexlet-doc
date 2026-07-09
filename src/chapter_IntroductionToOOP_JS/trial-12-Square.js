@@ -1,0 +1,20 @@
+//* // my solution Испытание-12: ГЕНЕРАТОР КВАДРАТОВ
+export default class Square {
+  constructor(side) {
+    this.side = side
+  }
+
+  getSide() {
+    return this.side
+  }
+}
+// */
+
+//* // example
+const square = new Square(10)
+console.log(square.getSide()) // 10
+// */
+
+/* // description 
+Реализуйте и экспортируйте по умолчанию класс Square для представления квадрата. У квадрата есть только одно свойство — сторона. Реализуйте метод getSide(), возвращающий значение стороны.
+// */

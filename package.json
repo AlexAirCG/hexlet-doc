@@ -17,6 +17,7 @@
     "crc": "^4.3.2",
     "crc-32": "^1.2.2",
     "es-toolkit": "^1.46.1",
+    "fakerator": "^0.3.6",
     "lodash": "^4.17.23",
     "papaparse": "^5.5.3"
   },
@@ -35,6 +36,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "power-assert": "^1.6.1",
     "typescript": "^6.0.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.1.9"
   }
 }

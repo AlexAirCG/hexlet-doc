@@ -267,7 +267,7 @@ const user = {
 console.log(user.getAge())
 // */
 
-//*
+/*
 const group = {
   names: ['Ivan'],
   newName: 'Andrey',
@@ -277,4 +277,258 @@ const group = {
 }
 
 console.log(group.changeNames())
+// */
+
+/*
+const make = (name, website) => {
+  return { name, website }
+}
+
+const getName = (company) => company.name
+const getWebsite = (company) => company.website
+
+const company = make('Hexlet', 'hexlet.ru')
+
+console.log(getName(company))
+console.log(getWebsite(company))
+// */
+
+/*
+const make = (name, website) => {
+  return {
+    name,
+    website,
+    getName() {
+      return this.name
+    },
+    getWebsite() {
+      return this.website
+    },
+  }
+}
+const company = make('Alex', 'myday24.ru')
+console.log(company.getName())
+console.log(company.getWebsite())
+// */
+
+/*
+function getName() {
+  return this.name
+}
+function getWebsite() {
+  return this.website
+}
+
+const make = (name, website) => {
+  return {
+    name,
+    website,
+    getName,
+    getWebsite,
+  }
+}
+
+const company = make('AlexAir', 'myday24.ru')
+
+console.log(company.getName())
+// */
+
+/*
+function getName() {
+  return this.name
+}
+function getWebsite() {
+  return this.website
+}
+
+function Company(name, website) {
+  this.name = name
+  this.website = website
+  this.getName = getName
+  this.getWebsite = getWebsite
+}
+
+const company = new Company('Alex', 'myday24.ru')
+
+console.log(company.getName())
+// */
+
+/*
+function getResult() {
+  return this.result
+}
+
+function Exp(a, b = 2) {
+  this.result = a ** b
+  this.getResult = getResult
+}
+
+const exp = new Exp(2)
+
+console.log(exp.getResult()) // 4
+// */
+
+/*
+const number = [1, 3]
+Array.prototype.last = function last() {
+  return this[this.length - 1]
+}
+console.log(number)
+// */
+
+/*
+String.toUpperCase = () => {}
+console.log('hexlet'.toUpperCase())
+// */
+
+/*
+const obj = {
+  sayHello: () => console.log('hello!'),
+}
+
+obj.sayHello()
+// */
+
+/*
+const lang = 'Haskell'
+console.log(typeof lang) // 'string'
+lang.toUpperCase()
+console.log(typeof lang) // => ?
+const newLang = lang.toUpperCase()
+console.log(typeof newLang)
+// */
+
+/*
+const iphone = {
+  name: 'iPhone 17',
+  price: 1000,
+  toString() {
+    return `${this.name} (${this.price.toLocaleString(undefined, { style: 'currency', currency: 'usd' })})`
+  },
+  valueOf() {
+    return this.price
+  },
+}
+
+const macbook = {
+  name: 'MakBook 5',
+  price: 5000,
+  toString() {
+    return `${this.name} (${this.price.toLocaleString(undefined, { style: 'currency', currency: 'usd' })})`
+  },
+  valueOf() {
+    return this.price
+  },
+}
+
+const total = `${iphone}\n${macbook}`
+
+console.log(`Вы купили ${total}`)
+// */
+
+/*
+function Company(name) {
+  this.name = name
+}
+
+Company.prototype.toString = function toString() {
+  return this.name
+}
+
+const company = new Company('Hexlet')
+// JSON – это строка!
+console.log(company)
+console.log(JSON.stringify(company)) // => '{"name":"Hexlet"}'
+// */
+
+/*
+class Company {
+  constructor(name, email) {
+    this.name = name
+    this.email = email
+  }
+
+  getName() {
+    return this.name
+  }
+
+  getEmail() {
+    return this.email
+  }
+
+  setEmail(email) {
+    this.email = email
+  }
+}
+const company = new Company('Alex', 'myday24@.yandex.ru')
+console.log(company.getEmail())
+// */
+
+/*
+class User {
+  constructor(name) {
+    this.name = name
+  }
+
+  name() {
+    return this.name
+  }
+}
+
+const user = new User('Tirion')
+console.log(user.name()) // => ?
+// */
+
+/*
+class Money {
+  static rates = {
+    usd: {
+      eur: 0.7,
+    },
+    eur: {
+      usd: 1.2,
+    },
+  }
+
+  static setRate(from, to, value) {
+    this.rates[from][to] = value
+  }
+
+  constructor(value, currency = 'usd') {
+    this.value = value
+    this.currency = currency
+  }
+
+  exchangeTo(newCurrency) {
+    if (this.currency === newCurrency) {
+      return new Money(this.value, this.currency)
+    }
+
+    const newValue =
+      this.value * this.constructor.rates[this.currency][newCurrency]
+    return new Money(newValue, newCurrency)
+  }
+
+  getValue() {
+    return this.value
+  }
+}
+
+const money1 = new Money(100)
+console.log(money1.getValue()) // => 100
+// Не меняет сам money1
+console.log(money1.exchangeTo('eur').getValue()) // 70
+console.log(money1.getValue()) // => 100
+// */
+
+/* // Что будет напечатано на экран?
+let result = ''
+try {
+  result += 'one'
+} catch (e) {
+  result += 'two'
+}
+result += ' three'
+console.log(result)
+
 // */
