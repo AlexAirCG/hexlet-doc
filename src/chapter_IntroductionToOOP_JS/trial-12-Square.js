@@ -1,16 +1,8 @@
 //* // my solution Испытание-12: ГЕНЕРАТОР КВАДРАТОВ
-export default class Square {
-  constructor(side) {
-    this.side = side
-  }
 
-  getSide() {
-    return this.side
-  }
-}
 // */
 
-//* // example
+/* // example
 const square = new Square(10)
 console.log(square.getSide()) // 10
 // */

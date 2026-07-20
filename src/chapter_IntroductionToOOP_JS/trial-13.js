@@ -1,8 +1,26 @@
 //* // Испытание-13: ПОСТРОЕНИЕ ДВОИЧНОГО ДЕРЕВА
+export default class Node {
+  constructor() {
+    this.key = null
+    this.left = null
+    this.right = null
+  }
 
+  getKey() {
+    return this.key
+  }
+
+  getLeft() {
+    return this.left
+  }
+
+  getRight() {
+    return this.right
+  }
+}
 // */
 
-//* // example
+/* // example
 const tree = new Node()
 
 tree.insert(9)

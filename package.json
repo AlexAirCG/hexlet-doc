@@ -19,7 +19,8 @@
     "es-toolkit": "^1.46.1",
     "fakerator": "^0.3.6",
     "lodash": "^4.17.23",
-    "papaparse": "^5.5.3"
+    "papaparse": "^5.5.3",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/create-config": "^1.11.0",
