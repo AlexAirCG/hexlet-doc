@@ -35,7 +35,7 @@ console.log(filteredCars)
 console.log(cars.all())
 // */
 
-//* // ТЕОРИЯ: СБОРЩИКИ
+/* // ТЕОРИЯ: СБОРЩИКИ
 import * as yup from 'yup'
 
 const schema = yup.object().shape({
@@ -52,5 +52,24 @@ const data = {
 }
 
 console.log(schema.validateSync(data))
+// */
 
+//* // ТЕОРИЯ: ПРОКСИ
+// Количество пользователей в разных странах
+const usersCountByCountry = {}
+
+const handler = {
+  get: (target, prop) => {
+    if (prop in target) {
+      return target[prop]
+    }
+    return 0
+  },
+}
+
+const obj = new Proxy(usersCountByCountry, handler)
+
+console.log(obj)
+console.log((obj.russia += 1))
+console.log(obj)
 // */
