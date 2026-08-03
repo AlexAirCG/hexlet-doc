@@ -1,8 +1,6 @@
 /* // my solution Испытание-8: КЛАСС
 import { sumBy } from 'es-toolkit'
 
-
-
 // */
 
 /* // example

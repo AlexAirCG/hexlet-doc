@@ -1,8 +1,7 @@
 /* // Испытание-5: СБОРЩИКИ
-import * as yup from 'yup'
+import yup from 'yup'
 
 const genres = ['drama', 'horror', 'fantasy', 'classic']
-
 
 
 export default getInvalidBooks

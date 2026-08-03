@@ -1,6 +1,10 @@
-//* // Испытание-6: ПРОКСИ
+/* // Испытание-6: ПРОКСИ
 
-/* // example
+
+export default protect
+// */
+
+/* // example (comment during testing)
 const user = {
   name: 'John',
   age: 25,
@@ -10,12 +14,12 @@ const user = {
 const protectedProps = ['password']
 
 const protectedUser = protect(user, protectedProps)
-protectedUser.name // John
-protectedUser.age // 25
-protectedUser.password // Error: Access to 'password' is restricted
+console.log(protectedUser.name) // John
+console.log(protectedUser.age) // 25
+console.log(protectedUser.password) // Error: Access to 'password' is restricted
 
-protectedUser.name = 'Jane' // установит значение 'Jane' в свойство 'name'
-protectedUser.password = 'newPassword' // Error: Access to 'password' is restricted
+console.log((protectedUser.name = 'Jane')) // установит значение 'Jane' в свойство 'name'
+console.l((protectedUser.password = 'newPassword')) // Error: Access to 'password' is restricted
 // */
 
 /* // description

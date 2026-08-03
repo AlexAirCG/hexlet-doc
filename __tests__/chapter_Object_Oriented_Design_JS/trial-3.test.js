@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import Url from '../../src/chapter_Object_Oriented_Design_JS/trial-3.js'
 
 const yandexUrl = 'http://yandex.ru?key=value&key2=value2'
