@@ -1,14 +1,8 @@
-//* // Испытание-16: ПОИСК В ДВОИЧНОМ ДЕРЕВЕ
-export default class Node {
-  constructor(key = null, left = null, right = null) {
-    this.key = key
-    this.left = left
-    this.right = right
-  }
-}
+//* // ПОИСК В ДВОИЧНОМ ДЕРЕВЕ
+
 // */
 
-//* // example
+/* // example
 const tree = new Node(
   9,
   new Node(4, new Node(3), new Node(6, new Node(5), new Node(7))),

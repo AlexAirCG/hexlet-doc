@@ -1,4 +1,4 @@
-/* // Испытание: ЧИСТЫЕ ФУНКЦИИ
+/* // ЧИСТЫЕ ФУНКЦИИ
 
 
 export default sayPrimeOrNot

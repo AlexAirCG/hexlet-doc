@@ -1,4 +1,4 @@
-/* // my solution Испытание-8: КЛАСС
+/* // КЛАСС
 import { sumBy } from 'es-toolkit'
 
 // */

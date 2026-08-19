@@ -1,5 +1,6 @@
-/* // Испытание-10: ЛЕНИВЫЕ КОЛЛЕКЦИИ
+/* // ЛЕНИВЫЕ КОЛЛЕКЦИИ
 import cloneDeep from 'es-toolkit/compat/cloneDeep'
+
 
 
 // */

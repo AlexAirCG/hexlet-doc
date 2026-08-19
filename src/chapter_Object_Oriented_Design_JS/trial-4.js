@@ -1,4 +1,4 @@
-/* // Испытание-4: FLUENT INTERFACE
+/* // FLUENT INTERFACE
 
 
 export default normalize

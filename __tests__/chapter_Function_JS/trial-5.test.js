@@ -1,9 +1,7 @@
 import takeOldest from '../../src/chapter_Function_JS/trial-5.js'
 
-let users
-
-beforeEach(() => {
-  users = [
+describe('takeOldest', () => {
+  const users = [
     { name: 'Tirion', birthday: 'Nov 19, 1988' },
     { name: 'Sam', birthday: 'Nov 22, 1999' },
     { name: 'Rob', birthday: 'Jan 11, 1975' },
@@ -11,15 +9,28 @@ beforeEach(() => {
     { name: 'Tisha', birthday: 'Feb 27, 1992' },
     { name: 'Chris', birthday: 'Dec 25, 1995' },
   ]
-})
 
-test('takeOldest default', () => {
-  expect(takeOldest(users)).toEqual([{ name: 'Rob', birthday: 'Jan 11, 1975' }])
-})
+  it('test 1', () => {
+    const expected = [{ name: 'Rob', birthday: 'Jan 11, 1975' }]
+    expect(takeOldest(users)).toEqual(expected)
+  })
 
-test('takeOldest num = 2', () => {
-  expect(takeOldest(users, 2)).toEqual([
-    { name: 'Rob', birthday: 'Jan 11, 1975' },
-    { name: 'Tirion', birthday: 'Nov 19, 1988' },
-  ])
+  it('test 2', () => {
+    const expected = [
+      { name: 'Rob', birthday: 'Jan 11, 1975' },
+      { name: 'Tirion', birthday: 'Nov 19, 1988' },
+    ]
+    expect(takeOldest(users, 2)).toEqual(expected)
+  })
+
+  it('test 3', () => {
+    const expected = [
+      { name: 'Rob', birthday: 'Jan 11, 1975' },
+      { name: 'Tirion', birthday: 'Nov 19, 1988' },
+      { name: 'Tisha', birthday: 'Feb 27, 1992' },
+      { name: 'Chris', birthday: 'Dec 25, 1995' },
+      { name: 'Sam', birthday: 'Nov 22, 1999' },
+    ]
+    expect(takeOldest(users, 5)).toEqual(expected)
+  })
 })

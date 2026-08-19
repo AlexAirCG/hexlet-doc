@@ -1,14 +1,14 @@
-/*
-Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход список пользователей и возвращает плоский список их детей. Дети каждого пользователя хранятся в виде массива в ключе children.
+/* // ОТОБРАЖЕНИЕ (map)
 
-import getChildren from './users.js';
 
+export default getChildren
+// */
+
+/* // example
 const users = [
   {
     name: 'Tirion',
-    children: [
-      { name: 'Mira', birthday: '1983-03-23' },
-    ],
+    children: [{ name: 'Mira', birthday: '1983-03-23' }],
   },
   { name: 'Bronn', children: [] },
   {
@@ -20,31 +20,25 @@ const users = [
   },
   {
     name: 'Rob',
-    children: [
-      { name: 'Tisha', birthday: '2012-11-03' },
-    ],
+    children: [{ name: 'Tisha', birthday: '2012-11-03' }],
   },
-];
+]
 
-getChildren(users);
+console.log(getChildren(users))
 // [
 //   { name: 'Mira', birthday: '1983-03-23' },
 //   { name: 'Aria', birthday: '2012-11-03' },
 //   { name: 'Keit', birthday: '1933-05-14' },
 //   { name: 'Tisha', birthday: '2012-11-03' },
 // ];
+// */
+
+/* // description
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход список пользователей и возвращает плоский список их детей. Дети каждого пользователя хранятся в виде массива в ключе children.
+
 Другие примеры смотрите в модуле с тестами.
 
 Подсказки
-flat
-// */
 
-// solution
-/*
-const getChildren = (users) => {
-  const childrenName = users.map(({ children }) => children)
-  return childrenName.flat()
-}
-
-export default getChildren
+- flat
 // */

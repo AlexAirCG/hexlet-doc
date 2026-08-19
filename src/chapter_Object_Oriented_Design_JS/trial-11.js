@@ -1,5 +1,7 @@
-//* // Испытание-11: ПОД ЗАМКОМ
+/* // ПОД ЗАМКОМ
 
+
+export default protect
 // */
 
 /* // example (comment during testing)

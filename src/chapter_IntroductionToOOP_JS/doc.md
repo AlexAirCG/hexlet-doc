@@ -2131,12 +2131,10 @@ export default class Time {
 ```js
 // my solution
 export default class Time {
-  // BEGIN (write your solution here)
   static fromString(time) {
     const [hours, minutes] = time.split(':')
     return new Time(hours, minutes)
   }
-  // END
 
   constructor(hours, minutes) {
     this.minutes = minutes
@@ -2306,7 +2304,7 @@ try {
 Блок try/catch обычно ставится на самом верхнем уровне программы, но это не обязательно. Вполне вероятно, что есть несколько промежуточных блоков, которые могут отлавливать ошибки и снова их возбуждать. Эта тема достаточно сложная и требует некоторого опыта работы.
 
 ==============================================================
-Испытание-10: ИСКЛЮЧЕНИЯ
+Испытание-10: ИСКЛЮЧЕНИЯ 
 ==============================================================
 
 JSON.JS

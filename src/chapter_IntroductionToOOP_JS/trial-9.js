@@ -1,8 +1,22 @@
-//* // Испытание-9: СТАТИЧЕСКИЕ СВОЙСТВА И МЕТОДЫ
+//* // СТАТИЧЕСКИЕ СВОЙСТВА И МЕТОДЫ
+export default class Time {
+  constructor(hours, minuts) {
+    this.hours = hours
+    this.minuts = minuts
+  }
 
+  static fromString(string) {
+    const [hours, minuts] = string.split(':')
+    return new Time(hours, minuts)
+  }
+
+  toString() {
+    return `${this.hours}:${this.minuts}`
+  }
+}
 // */
 
-/* // example
+//* // example
 const time = new Time(10, 15)
 console.log(`The time is ${time.toString()}`) // => 'The time is 10:15'
 

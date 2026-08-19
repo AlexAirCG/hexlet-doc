@@ -1,33 +1,24 @@
-/*
-Реализуйте внутреннюю функцию takeLast(), которая возвращает последние n символов строки в обратном порядке. Количество символов передаётся в takeLast() вторым параметром. Если передаётся пустая строка или строка меньше необходимой длины, функция должна вернуть null.
+//* // ОБЪЕКТЫ ПЕРВОГО КЛАССА
+const run = (text) => {
+  const takeLast = (str, num) => {
+    return str.length < num
+      ? null
+      : str.slice(-num).split('').reverse().join('')
+  }
 
-Примеры
-run('');       // null
-run('cb');     // null
-run('power');  // rewo
-run('hexlet'); // telx
-// */
-
-const takeLast = (str, n = 4) => {
-  if (str === '' || str.length < n) return null
-  const cut = str.slice(str.length - n)
-  return cut.split('').reverse().join('')
+  return takeLast(text, 4)
 }
 
-// teacher
-// const run = (text) => {
-//   const takeLast = (str, length) => {
-//     if (str.length === 0 || str.length < length) {
-//       return null
-//     }
+export default run
+// */
 
-//     const result = []
-//     for (let i = str.length - 1; result.length < length; i -= 1) {
-//       result.push(str[i])
-//     }
-//     return result.join('')
-//   }
-//   return takeLast(text, 4)
-// }
+//* // example
+run('') // null
+run('cb') // null
+run('power') // rewo
+run('hexlet') // telx
+// */
 
-export default takeLast
+/* // description
+Реализуйте внутреннюю функцию takeLast(), которая возвращает последние n символов строки в обратном порядке. Количество символов передаётся в takeLast() вторым параметром. Если передаётся пустая строка или строка меньше необходимой длины, функция должна вернуть null.
+// */

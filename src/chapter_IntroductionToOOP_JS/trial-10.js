@@ -1,7 +1,8 @@
-/* // my solution Испытание-10: ИСКЛЮЧЕНИЯ
+/* // ИСКЛЮЧЕНИЯ
 import ParseError from './ParseError.js'
 
 
+export { parseJson }
 // */
 
 /* // example комментировать при запуске тестов

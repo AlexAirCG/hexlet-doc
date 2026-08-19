@@ -1,23 +1,5 @@
-//* // Испытание-13: ПОСТРОЕНИЕ ДВОИЧНОГО ДЕРЕВА
-export default class Node {
-  constructor() {
-    this.key = null
-    this.left = null
-    this.right = null
-  }
+//* // ПОСТРОЕНИЕ ДВОИЧНОГО ДЕРЕВА
 
-  getKey() {
-    return this.key
-  }
-
-  getLeft() {
-    return this.left
-  }
-
-  getRight() {
-    return this.right
-  }
-}
 // */
 
 /* // example

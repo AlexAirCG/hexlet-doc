@@ -1,9 +1,10 @@
-// Испытание-7: Фильтрация (filter)
-/*
-Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход список пользователей и возвращает плоский список подруг всех пользователей (без сохранения ключей). Друзья каждого пользователя хранятся в виде массива в ключе friends. Пол доступен по ключу gender и может принимать значения male или female.
+/* //  ФИЛЬТРАЦИЯ (filter)
 
-import getGirlFriends from './users.js';
 
+export default getCirlFriends
+// */
+
+/* // example
 const users = [
   {
     name: 'Tirion',
@@ -22,47 +23,25 @@ const users = [
   },
   {
     name: 'Rob',
-    friends: [
-      { name: 'Taywin', gender: 'male' },
-    ],
+    friends: [{ name: 'Taywin', gender: 'male' }],
   },
-];
+]
 
-getGirlFriends(users);
+console.log(getCirlFriends(users))
 // [
 //   { name: 'Mira', gender: 'female' },
 //   { name: 'Aria', gender: 'female' },
 //   { name: 'Keit', gender: 'female' },
 // ];
+// */
+
+/* // description
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход список пользователей и возвращает плоский список подруг всех пользователей (без сохранения ключей). Друзья каждого пользователя хранятся в виде массива в ключе friends. Пол доступен по ключу gender и может принимать значения male или female.
+
 Другие примеры смотрите в модуле с тестами.
 
 Подсказки
-Так как нам нужны только друзья, то можно применить отображение map() и получить список друзей, который затем будет фильтроваться
-Одно из решений задачи предполагает использование метода массива flat()
-// */
 
-// my solution
-/*
-const getGirlFriends = (users) => {
-  const userGirlfriends = users
-    .map((user) => {
-      return user.friends
-    })
-    .flat()
-    .filter((friend) => friend.gender === 'female')
-
-  return userGirlfriends
-}
-
-export default getGirlFriends
-// */
-
-// teacher solution
-//*
-const getGirlfriends = (users) => {
-  const friendssOfUsers = users.map(({ friends }) => friends)
-  return friendssOfUsers.flat().filter(({ gender }) => gender === 'female')
-}
-
-export default getGirlfriends
+- Так как нам нужны только друзья, то можно применить отображение map() и получить список друзей, который затем будет фильтроваться
+- Одно из решений задачи предполагает использование метода массива flat()
 // */

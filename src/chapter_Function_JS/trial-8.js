@@ -1,11 +1,33 @@
-const groupBy = (students, key) => {
-  if (!key) return {}
-
-  return students.reduce((acc, student) => {
-    const groupName = student[key]
-    const group = acc[groupName] ?? []
-    return { ...acc, [groupName]: group.concat(student) }
-  }, {})
-}
+/* // АГРЕГАЦИЯ (reduce)
 
 export default groupBy
+// */
+
+/* // example
+const students = [
+  { name: 'Tirion', class: 'B', mark: 3 },
+  { name: 'Keit', class: 'A', mark: 3 },
+  { name: 'Ramsey', class: 'A', mark: 4 },
+]
+
+groupBy([], '') // {}
+groupBy(students, 'mark')
+// {
+//   3: [
+//     { name: "Tirion", class: "B", mark: 3 },
+//     { name: "Keit", class: "A", mark: 3 },
+//   ],
+//   4: [
+//     { name: "Ramsey", class: "A", mark: 4 },
+//   ],
+// }
+// */
+
+/* // description
+Реализуйте и экспортируйте по умолчанию функцию для группировки объектов по заданному свойству. Функция принимает аргументами массив объектов и название свойства для группировки. Она должна возвращать объект, где ключ - это значение по заданному свойству, а значение - массив с данными, подходящими для группы.
+
+Подсказки
+- Аналогичная функция есть в lodash, но вам её нужно создать самостоятельно
+- Алгоритм решения задачи с помощью цикла и редьюса одинаковый. Если вам так проще, сделайте сначала через цикл, затем перепишите через reduce
+- Решение этой задачи аналогично решению задачи usersByAge из теории
+// */

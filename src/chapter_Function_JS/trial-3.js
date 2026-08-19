@@ -1,4 +1,4 @@
-//* // Испытание-3: Испытание: ОПЕРАТОР SPREAD (распаковка аргументов)
+//* // ОПЕРАТОР SPREAD (распаковка аргументов)
 const convert = (...arrs) =>
   arrs.map(([year, month, day]) =>
     new Date(year, month - 1, day).toDateString(),

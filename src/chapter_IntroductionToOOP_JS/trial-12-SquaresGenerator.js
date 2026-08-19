@@ -1,4 +1,4 @@
-/* // my solution Испытание-12: ГЕНЕРАТОР КВАДРАТОВ SquaresGenerator
+/* // ГЕНЕРАТОР КВАДРАТОВ SquaresGenerator
 import Square from './trial-12-Square.js'
 
 

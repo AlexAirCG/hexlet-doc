@@ -1,4 +1,4 @@
-/* // Испытание-9: ДИАПАЗОН ДАТ
+/* // ДИАПАЗОН ДАТ
 import eachDayOfInterval from 'date-fns/eachDayOfInterval'
 import format from 'date-fns/format'
 import has from 'lodash/has'
