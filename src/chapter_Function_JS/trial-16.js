@@ -1,10 +1,10 @@
 /* // ТЕОРИЯ ВЕРОЯТНОСТИ
 import _ from 'lodash'
 
-
-
 export default calculateProbabilities
 // */
+// [1, 3, 1, 5, 1]
+// [1, 3, 5]
 
 /* // example
 console.log(calculateProbabilities([])) // {}

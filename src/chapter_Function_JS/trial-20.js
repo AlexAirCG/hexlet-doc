@@ -1,0 +1,40 @@
+/* // ПАРСИНГ КОНФИГУРАЦИИ
+
+
+console.log(getForwardedVariables(readFixture('s2.conf')))
+
+export default getForwardedVariables
+// */
+
+/* // example
+// [program:prepare]
+// command=sudo -HEu tirion /bin/bash -c 'cd /usr/src/app && make prepare'
+// autorestart=false
+// environment="X_FORWARDED_MAIL=tirion@google.com,X_FORWARDED_HOME=/home/tirion,language=en"
+
+// [program:http_server]
+// command=sudo -HEu tirion /bin/bash -c 'cd /usr/src/app && make environment'
+// environment="key5=value5,X_FORWARDED_var3=value,key6=value6"
+
+// Читаем содержимое файла и записываем его в константу content. Реализовывать это в домашней работе не нужно.
+const content = fs.readFileSync('s.conf', 'utf-8')
+
+// Передаем содержимое файла в функцию
+const result = getForwardedVariables(content)
+console.log(result) // => "MAIL=tirion@google.com,HOME=/home/tirion,var3=value"
+// */
+
+/* // description
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход содержимое конфигурационного файла в виде строки, находит в нём переменные окружения, которые нужно передать и возвращает их в виде строки формата "имя1=значение1,имя2=значение2,имя3=значение3,...".
+
+Переменные окружения в конфигурационном файле устанавливаются командой environment, после которой в кавычках указан список переменных через запятую.
+
+```txt
+environment='X_FORWARDED_MAIL=tirion@google.com,X_FORWARDED_HOME=/home/tirion,language=en'
+```
+
+Те переменные, которые нужно пробросить, начинаются с префикса X*FORWARDED*. В итоговую строку имена переменных должны попадать без этого префикса. Например, если в конфигурационном файле переменная устанавливается так: X_FORWARDED_HOME=/home/tirion, то в итоговой строке она должна выглядеть так: "HOME=/home/tirion".
+
+Подсказки
+Примеры конфигурационных файлов можно посмотреть в директории __fixtures__
+// */

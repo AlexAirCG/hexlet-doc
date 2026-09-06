@@ -635,6 +635,465 @@ const sequenceSum = (begin, end) => {
 </details>
 
 ==================================================================
+Испытание-11: ИТЕРАТИВНЫЙ ПРОЦЕСС |-|-|
+==================================================================
+Реализуйте тело функции smallestDivisor(), используя итеративный процесс. Функция должна находить наименьший делитель заданного числа. Число, передаваемое в функцию, больше нуля.
+
+Доп. условие: делитель должен быть больше единицы, за исключением случая, когда аргументом является единица (наименьшим делителем которой является также единица).
+
+Например, наименьший делитель числа 15 это 3.
+
+```js
+smallestDivisor(15) // 3
+smallestDivisor(17) // 17
+```
+
+Идея алгоритма:
+
+1. Попробуйте разделить число на 2
+2. Если число делится без остатка, то это наименьший делитель
+3. Если нет, то попробуйте следующий делитель
+4. Если ничего не делит число без остатка, то переданное число является простым, так что его наименьший делитель — оно само (не считая 1)
+
+Подсказки
+
+- Вспомните про оператор % (modulus или остаток от деления). Он вычисляет остаток от деления одного операнда на другой. Например, 11 % 5 = 1, а 10 % 2 = 0. Так что если x % y это 0, то y делит x без остатка
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const smallestDivisor = (n) => {
+  if (n <= 1) return n
+
+  const iter = (divisor) => {
+    if (divisor ** 2 > n) return n
+    if (n % divisor === 0) return divisor
+    return iter(divisor + 1)
+  }
+
+  return iter(2)
+}
+
+// teacher solution
+const smallestDivisor = (num) => {
+  const iter = (acc) => {
+    // We use 'num / 2' in the condition below, and not 'num'.
+    // This is a simple optimization: a number cannot be divided
+    // by a number larger than its half.
+    if (acc > num / 2) {
+      return num
+    }
+    if (num % acc === 0) {
+      return acc
+    }
+    return iter(acc + 1)
+  }
+
+  return iter(2)
+}
+```
+
+</details>
+
+==================================================================
+Испытание-12: СЛИЯНИЕ СЛОВАРЕЙ |-|-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию функцию, которая объединяет несколько словарей (объектов) в один общий словарь. Функция принимает любое количество аргументов и возвращает результат в виде объекта, в котором каждый ключ содержит список уникальных значений в виде массива. Элементы в списке располагаются в том порядке, в котором они появляются во входящих словарях.
+
+```js
+merge({}, {}, {})
+// {}
+
+merge({ a: 1, b: 2 }, { a: 3 })
+// { a: [1, 3], b: [2] }
+
+merge(
+  { a: 1, b: 2, c: 3 },
+  {},
+  { a: 3, b: 2, d: 5 },
+  { a: 6 },
+  { b: 4, c: 3, d: 2 },
+  { e: 9 },
+)
+// { a: [1, 3, 6], b: [2, 4], c: [3], d: [5, 2], e: [9] }
+```
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const merge = (...objs) => {
+  return objs.reduce((acc, obj) => {
+    Object.entries(obj).forEach(([key, value]) => {
+      acc[key] = acc[key] || []
+      if (!acc[key].includes(value)) {
+        acc[key].push(value)
+      }
+    })
+    return acc
+  }, {})
+}
+
+// teacher solution
+import _ from 'lodash'
+
+const cons = (list, el) => _.union(list, [el])
+
+export default (...dictionaries) => _.mergeWith({}, ...dictionaries, cons)
+
+// Документация по функции union https://lodash.com/docs/#union
+// Документация по функции mergeWith: https://lodash.com/docs/#mergeWith
+/*
+Функция merge в lodash объединяет объекты:
+_.merge({ a: 'b', c: 'b' }, { b: 'c', c: 'd' }) // { a: "b", c: "d", b: "c" }
+Последний объект считается источником (source) актуальных значений,
+поэтому в результате ключ "c" перезаписан значением из объекта справа
+
+mergeWith делает то же самое, но принимает третьим аргументом функцию-обработчик (customizer)
+customizer должен вернуть значение для текущего ключа (ключи берутся из правого объекта)
+customizer принимает до 6 аргументов, но нас интересуют только два:
+* objValue - значение по текущему ключу из левого объекта
+* srcValue - значение по текущем ключу из правого объекта
+_.mergeWith({ a: 'b', c: 'b' }, { b: 'c', c: 'd' }, (objValue, srcValue) => {
+  return srcValue || objValue;
+}) // { a: "b", c: "d", b: "c" }
+
+Возвращая из customizer массив, в objValue в следующий раз будет возвращаться массив,
+что и делается в решении учителя:
+_.mergeWith({ a: 'b', c: 'b' }, { b: 'c', c: 'd' }, (objValue, srcValue) => {
+  return _.union(objValue, [srcValue]); // objValue будет массивом для значений из source
+}) // { a: "b", c: ["d"], b: ["c"] }
+
+cons выступает функцией-обёрткой для union и как customizer для mergeWith
+*/
+```
+
+</details>
+
+==================================================================
+Испытание-13: ФИЛЬТР АНАГРАММ |-|-|
+==================================================================
+Анаграммы — это слова, которые состоят из одинаковых букв. Например:
+
+- спаниель — апельсин
+- карат — карта — катар
+- топор — ропот — отпор
+
+Реализуйте и экспортируйте по умолчанию функцию, которая находит все анаграммы слова. Функция принимает исходное слово и список для проверки (массив), а возвращает массив всех анаграмм. Если в списке слов отсутствуют анаграммы, то возвращается пустой массив.
+
+```js
+filterAnagrams('abba', ['aabb', 'abcd', 'bbaa', 'dada'])
+// ['aabb', 'bbaa']
+
+filterAnagrams('racer', ['crazer', 'carer', 'racar', 'caers', 'racer'])
+// ['carer', 'racer']
+
+filterAnagrams('laser', ['lazing', 'lazy', 'lacer'])
+// []
+```
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const filterAnagrams = (key, arr) => {
+  const sortWord = (str) => str.split('').sort().join('')
+  const target = sortWord(key)
+
+  return arr.filter((word) => sortWord(word) === target)
+}
+
+export default filterAnagrams
+
+// teacher solution
+export default (word, words) => {
+  const normalize = str => str.split('').sort().join('')
+  const normal = normalize(word)
+
+  return words.filter(item => normalize(item) === normal)
+}
+
+```
+
+</details>
+
+==================================================================
+Испытание-14: ВЕРТИКАЛЬНАЯ ГИСТОГРАММА |-|-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию функцию, которая выводит на экран вертикальную гистограмму. Функция принимает на вход количество бросков кубика и функцию, которая имитирует бросок игральной кости (её реализовывать не нужно). Вызов этой функции генерирует значение от 1 до 6, что соответствует одной из граней игральной кости.
+
+Гистограмма содержит столбцы, каждому из которых соответствует грань игральной кости и количество выпадений этой грани. Результаты отображаются графически (с помощью символов #) и в виде процентного значения от общего количества бросков, за исключением случаев, когда количество равно 0 (нулю).
+
+Дополнительные условия:
+
+- Процентные значения должны быть прижаты влево относительно столбца.
+- Значения сторон игральной кости должны быть посредине столбца.
+- Столбцы между собой разделены пробелом
+- Количество секций в столбце (высота столбца) должно соответствовать количеству выпадений каждой из сторон игральной кости.
+
+Примеры
+
+```js
+import displayHistogram from '../histogram.js'
+
+displayHistogram(32, rollDie)
+// =>                 28%
+//                    ###
+//                    ###
+//            19%     ###
+//            ### 16% ### 16%
+//    13%     ### ### ### ###
+//    ### 9%  ### ### ### ###
+//    ### ### ### ### ### ###
+//    ### ### ### ### ### ###
+//    ### ### ### ### ### ###
+//    -----------------------
+//     1   2   3   4   5   6
+
+displayHistogram(13, rollDie)
+// =>                 31% 31%
+//                    ### ###
+//        15%     15% ### ###
+//        ### 8%  ### ### ###
+//        ### ### ### ### ###
+//    -----------------------
+//     1   2   3   4   5   6
+```
+
+Подсказки:
+
+- Гистограмма.
+- Для решения задачи активно используйте функции из библиотеки es-toolkit.
+- При получении процентного значения используйте стандартные правила округления числа.
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+import _ from 'lodash'
+
+const displayHistogram = (count, rollDie) => {
+  const rolls = _.times(count, rollDie)
+  const stats = _.countBy(rolls)
+  const sides = _.range(1, 7)
+
+  const data = sides.map((side) => {
+    const occurrance = stats[side] || 0
+    const percentage = occurrance > 0 ? Math.round((occurrance / count) * 100) : 0
+    return { side, occurrance, percentage }
+  })
+
+  const maxHeight = _.max(_.map(data, 'occurrance'))
+  const lines = []
+
+  for (let h = maxHeight + 1; h > 0; h -= 1) {
+    const line = data.map(({ occurrance, percentage }) => {
+      if (occurrance === h - 1 && percentage > 0) {
+        return `${percentage}%`.padEnd(3)
+      }
+      if (occurrance >= h) {
+        return '###'
+      }
+      return '   '
+    })
+    lines.push(line.join(' ').trimEnd())
+  }
+  lines.push('-----------------------')
+  lines.push(' 1   2   3   4   5   6')
+
+  console.log(lines.join('\n'))
+}
+
+export default displayHistogram
+
+// teacher solution
+import _ from 'lodash'
+
+export default (roundsCount, rollDie) => {
+  const bar = '###'
+  const width = 4
+  const numbers = _.times(roundsCount, rollDie)
+  const sides = _.range(1, 7)
+  const counts = _.countBy(numbers)
+  const countsPairs = _.toPairs(counts)
+  const [, maxCount] = _.maxBy(countsPairs, ([, count]) => count)
+  const percentsPairs = countsPairs.map(([side, count]) => {
+    const percent = Math.round((count * 100) / roundsCount)
+    return [side, percent]
+  })
+  const percents = _.fromPairs(percentsPairs)
+
+  const lines = []
+  for (let i = maxCount; i > -1; i -= 1) {
+    const chunks = sides.map((side) => {
+      let chunk
+      const count = _.get(counts, side, 0)
+      if (count > i) {
+        chunk = bar.padEnd(width)
+      }
+      else if (count === i && count !== 0) {
+        const percent = percents[side]
+        chunk = `${percent}%`.padEnd(width)
+      }
+      else {
+        chunk = ' '.repeat(width)
+      }
+      return chunk
+    })
+    const line = _.trimEnd(chunks.join(''))
+    lines.push(line)
+  }
+
+  lines.push('-'.repeat(width * sides.length).slice(0, -1))
+  const lineWithSides = sides.map(side => ` ${side} `.padEnd(width)).join('')
+  lines.push(_.trimEnd(lineWithSides))
+
+  const str = lines.join('\n')
+  console.log(str)
+}
+
+```
+
+</details>
+
+==================================================================
+Испытание-15: ОДИНАКОВАЯ ЧЕТНОСТЬ |-|-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход массив и возвращает новый, состоящий из элементов, у которых такая же чётность, как и у первого элемента входного массива.
+
+Примеры
+
+```js
+sameParity([-1, 0, 1, -3, 10, -2]) // [-1, 1, -3]
+sameParity([2, 0, 1, -3, 10, -2]) // [2, 0, 10, -2]
+sameParity([]) // []
+```
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const sameParity = (arr) => {
+  if (arr.length === 0) return []
+
+  const first = arr[0]
+  const isFirstNum = Math.abs(first % 2) === 0
+
+  return arr.filter((item) => {
+    const isItemNum = Math.abs(item % 2) === 0
+    return isFirstNum === isItemNum
+  })
+}
+
+// teacher solution
+const isEven = (num) => num % 2 === 0
+
+export default (arr) => {
+  const firstItemParity = isEven(arr[0])
+  return arr.filter((el) => isEven(el) === firstItemParity)
+}
+```
+
+</details>
+
+==================================================================
+Испытание-16: ТЕОРИЯ ВЕРОЯТНОСТИ |-|-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход историю подбрасывания кубика в виде массива и возвращает объект. Ключом этого объекта служит число из списка, а значением – ещё один объект, в котором ключи – это числа, выпавшие сразу после первоначального числа, а значения – вероятность их выпадения.
+
+Например, если передать на вход массив [1, 3, 1, 5, 1], итоговый объект будет выглядеть так:
+
+```js
+{
+  1: { 3: 0.5, 5: 0.5 },
+  3: { 1: 1 },
+  5: { 1: 1 },
+};
+```
+
+После числа 1 выпадали числа 3 и 5 с равной долей вероятности 0.5. А после чисел 3 и 5 всегда выпадала единица, что даёт нам вероятность в 1.
+
+```js
+calculateProbabilities([]) // {}
+calculateProbabilities([1, 3, 1, 5, 1, 2, 1, 6])
+/*
+{
+  1: {
+      2: 0.25,
+      3: 0.25,
+      5: 0.25,
+      6: 0.25,
+    },
+  2: { 1: 1 },
+  3: { 1: 1 },
+  5: { 1: 1 },
+  6: {},
+};
+*/
+```
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+import _ from 'lodash'
+
+const calculateProbabilities = (arr) => {
+  if (arr.length === 0) return {}
+
+  const result = arr.reduce((acc, current, i) => {
+    if (!acc[current]) acc[current] = {}
+
+    const next = arr[i + 1]
+    if (next !== undefined) {
+      acc[current][next] = (acc[current][next] || 0) + 1
+    }
+
+    return acc
+  }, {})
+
+  return _.mapValues(result, (followers) => {
+    const total = _.sum(_.values(followers))
+    if (total === 0) return {}
+    return _.mapValues(followers, (count) => count / total)
+  })
+}
+
+export default calculateProbabilities
+
+// teacher solution
+import _ from 'lodash'
+
+const countElements = (elements, element) => elements
+  .reduce((acc, current) => (current === element ? acc + 1 : acc), 0)
+
+const findProbabilityForElement = (elements, element) => elements
+  .filter((current, index) => elements[index - 1] === element)
+  .reduce((acc, currentElement, i, filtered) => {
+    const totalElements = filtered.length
+    const probability = countElements(filtered, currentElement) / totalElements
+    return { ...acc, [currentElement]: probability }
+  }, {})
+
+const calculateProbabilities = numbers => _.uniq(numbers)
+  .reduce((acc, number) => {
+    const probabilities = findProbabilityForElement(numbers, number)
+    return { ...acc, [number]: probabilities }
+  }, {})
+
+export default calculateProbabilities
+```
+
+</details>
+
+==================================================================
 Испытание-17: СТОЛБЧАТАЯ ДИАГРАММА |-|-|
 ==================================================================
 
@@ -742,3 +1201,223 @@ export default (numbers) => {
 ```
 
 </details>
+
+==================================================================
+Испытание-18: ВАЛИДАТОР IPV6 |-|-|
+==================================================================
+Реализуйте функцию-предикат isValidIPv6(), которая проверяет IPv6-адреса (адреса шестой версии интернет протокола) на корректность. Функция принимает на вход строку с адресом IPv6 и возвращает true, если адрес корректный, а в противном случае false. Экспортируйте функцию по умолчанию.
+
+Дополнительные условия:
+
+- Работа функции не зависит от регистра символов
+- Ведущие нули в группах цифр необязательны
+- Самая длинная последовательность групп нулей, например, :0:0:0: может быть заменена на два двоеточия ::. Такую замену можно произвести только один раз
+
+Примеры
+
+```js
+isValidIPv6('10:d3:2d06:24:400c:5ee0:be:3d') // true
+isValidIPv6('0B0:0F09:7f05:e2F3:0D:0:e0:7000') // true
+isValidIPv6('000::B36:3C:00F0:7:937') // true
+isValidIPv6('::1') // true
+isValidIPv6('1001:208:67:4f00:e3::2c6:0') // true
+
+isValidIPv6('2607:G8B0:4010:801::1004') // false
+isValidIPv6('2.001::') // false
+isValidIPv6('9f8:0:69S0:9:9:d9a:672:f90d') // false
+```
+
+Подсказки
+
+- IPv6
+- Для проверки пограничных случаев внимательно изучите список IP-адресов в модуле с тестами
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const isValidIPv6 = (str) => {
+  const regex =
+    /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/
+  return regex.test(str)
+}
+
+export default isValidIPv6
+
+// teacher solution
+import _ from 'lodash'
+
+const isValidGroup = (group) => {
+  const number = Number(`0x${group}`)
+  return group.length <= 4 && !_.isNaN(number)
+}
+
+export default (ip) => {
+  if (ip.indexOf('::') !== ip.lastIndexOf('::')) {
+    return false
+  }
+
+  const isShort = ip.includes('::')
+  const groups = ip.split('::')
+    .filter(group => group !== '')
+    .flatMap(part => part.split(':'))
+
+  const length = isShort ? groups.length + 1 : groups.length
+
+  if ((!isShort && length < 8) || length > 8) {
+    return false
+  }
+
+  return groups.every(isValidGroup)
+}
+
+```
+
+</details>
+
+==================================================================
+Испытание-19: NRZI КОДИРОВАНИЕ |-|-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает строку в виде графического представления линейного сигнала и возвращает строку с бинарным кодом. Внимательно изучите примеры.
+
+Примеры
+
+```js
+const signal1 = '_|¯|____|¯|__|¯¯¯'
+nrzi(signal1) // '011000110100'
+
+const signal2 = '|¯|___|¯¯¯¯¯|___|¯|_|¯'
+nrzi(signal2) // '110010000100111'
+
+const signal3 = '¯|___|¯¯¯¯¯|___|¯|_|¯'
+nrzi(signal3) // '010010000100111'
+
+const signal4 = ''
+nrzi(signal4) // ''
+
+const signal5 = '|'
+nrzi(signal5) // ''
+```
+
+Подсказки
+Символ | в строке указывает на переключение сигнала и означает, что уровень сигнала в следующем такте будет изменён на противоположный по сравнению с предыдущим.
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const nrzi = (signal) => {
+  const chars = signal.split('')
+  let result = ''
+
+  for (let i = 0; i < chars.length; i++) {
+    const current = chars[i]
+    const prev = chars[i - 1]
+    const next = chars[i + 1]
+
+    if (current === '|') {
+      if (next !== undefined) {
+        result += '1'
+      }
+    } else if (current === '_' || current === '¯') {
+      if (prev !== '|') {
+        result += '0'
+      }
+    }
+  }
+  return result
+}
+
+// teacher solution
+export default (str) =>
+  str
+    .split('')
+    .map((e, i, arr) => {
+      if (e === '|') return ''
+      return arr[i - 1] === '|' ? 1 : 0
+    })
+    .join('')
+```
+
+</details>
+
+==================================================================
+Испытание-20: ПАРСИНГ КОНФИГУРАЦИИ |-|-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход содержимое конфигурационного файла в виде строки, находит в нём переменные окружения, которые нужно передать и возвращает их в виде строки формата "имя1=значение1,имя2=значение2,имя3=значение3,...".
+
+Переменные окружения в конфигурационном файле устанавливаются командой environment, после которой в кавычках указан список переменных через запятую.
+
+```txt
+environment='X_FORWARDED_MAIL=tirion@google.com,X_FORWARDED_HOME=/home/tirion,language=en'
+```
+
+Те переменные, которые нужно пробросить, начинаются с префикса X*FORWARDED*. В итоговую строку имена переменных должны попадать без этого префикса. Например, если в конфигурационном файле переменная устанавливается так: X_FORWARDED_HOME=/home/tirion, то в итоговой строке она должна выглядеть так: "HOME=/home/tirion".
+
+```txt
+[program:prepare]
+command=sudo -HEu tirion /bin/bash -c 'cd /usr/src/app && make prepare'
+autorestart=false
+environment="X_FORWARDED_MAIL=tirion@google.com,X_FORWARDED_HOME=/home/tirion,language=en"
+
+[program:http_server]
+command=sudo -HEu tirion /bin/bash -c 'cd /usr/src/app && make environment'
+environment="key5=value5,X_FORWARDED_var3=value,key6=value6"
+```
+
+```js
+// Читаем содержимое файла и записываем его в константу content. Реализовывать это в домашней работе не нужно.
+const content = fs.readFileSync('s.conf', 'utf-8')
+
+// Передаем содержимое файла в функцию
+const result = getForwardedVariables(content)
+console.log(result) // => "MAIL=tirion@google.com,HOME=/home/tirion,var3=value"
+```
+
+Подсказки
+Примеры конфигурационных файлов можно посмотреть в директории **fixtures**
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const getForwardedVariables = (content) => {
+  const matches = content.matchAll(/environment="([^"]+)"/g)
+
+  const result = []
+
+  for (const match of matches) {
+    const envVars = match[1].split(',')
+
+    envVars.forEach((item) => {
+      if (item.startsWith('X_FORWARDED_')) {
+        result.push(item.replace('X_FORWARDED_', ''))
+      }
+    })
+  }
+
+  return result.join(',')
+}
+
+// teacher solution
+export default (config) => {
+  const lines = config.split('\n')
+  return lines
+    .filter((line) => line.startsWith('environment='))
+    .map((line) => line.replaceAll('environment=', ''))
+    .map((line) => line.replaceAll('"', ''))
+    .flatMap((line) => line.split(','))
+    .filter((kv) => kv.startsWith('X_FORWARDED_'))
+    .map((kv) => kv.replace('X_FORWARDED_', ''))
+    .join(',')
+}
+```
+
+</details>
+
+==================================================================
+Испытание-20: ПАРСИНГ КОНФИГУРАЦИИ |-|-|
+==================================================================

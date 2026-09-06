@@ -1,38 +1,28 @@
-//*
-import _ from 'lodash'
-
-const cons = (list, el) => _.union(list, [el])
-
-const merge = (...coll) => _.mergeWith({}, ...coll, cons)
+/* // СЛИЯНИЕ СЛОВАРЕЙ
 
 export default merge
+// */
+
+/* // example
+console.log(merge({}, {}, {}))
+// {}
 
 console.log(merge({ a: 1, b: 2 }, { a: 3 }))
 // { a: [1, 3], b: [2] }
+
+console.log(
+  merge(
+    { a: 1, b: 2, c: 3 },
+    {},
+    { a: 3, b: 2, d: 5 },
+    { a: 6 },
+    { b: 4, c: 3, d: 2 },
+    { e: 9 },
+  ),
+)
+// { a: [1, 3, 6], b: [2, 4], c: [3], d: [5, 2], e: [9] }
 // */
 
-/*
-const merge = (...coll) => {
-  const result = {}
-
-  coll.forEach((obj) => {
-    Object.entries(obj).forEach(([key, value]) => {
-      if (!result[key]) {
-        result[key] = new Set()
-      }
-      result[key].add(value)
-    })
-  })
-
-  Object.keys(result).forEach((key) => {
-    result[key] = Array.from(result[key])
-  })
-
-  return result
-}
-
-export default merge
-
-console.log(merge({ a: 1, b: 2 }, { a: 3 }, { c: 4 }))
-// { a: [1, 3], b: [2] }
+/* // description
+Реализуйте и экспортируйте по умолчанию функцию, которая объединяет несколько словарей (объектов) в один общий словарь. Функция принимает любое количество аргументов и возвращает результат в виде объекта, в котором каждый ключ содержит список уникальных значений в виде массива. Элементы в списке располагаются в том порядке, в котором они появляются во входящих словарях.
 // */
