@@ -1,86 +1,209 @@
 /* //
-const data = [16, 64, 4]
-const data2 = data.map(Math.sqrt) // [4, 8, 2]
-const predicate = (v) => unknown > 2
+class CusPromise {
+  constructor(executor) {
+    if (typeof executor !== 'function') {
+      throw new TypeError('must be function')
+    }
 
-try {
-  const data3 = data2.filter(predicate) // ReferenceError
-} catch (e) {
-  console.log('Catch it')
-  console.log(e.stack)
+    this.state = 'pending'
+    this.value = undefined
+    this.handlers = []
+
+    const resolve = (data) => {
+      this.state = 'fulfilled'
+      this.value = data
+      this.handlers.forEach((handler) => handler.onFulfill(data))
+    }
+
+    const reject = (reason) => {
+      this.state = 'rejected'
+      this.value = reason
+      this.handlers.forEach((handler) => handler.onReject(reason))
+    }
+
+    executor(resolve, reject)
+  }
+
+  then(onFulfill, onReject) {
+    return new CusPromise((resolve, reject) => {
+      const handleFulfill = (value) => {
+        resolve(onFulfill(value))
+      }
+
+      const handleReject = (reason) => {
+        reject(onReject(reason))
+      }
+
+      if (this.state === 'pending') {
+        this.handlers.push({ onFulfill: handleFulfill, onReject: handleReject })
+      } else if (this.state === 'fulfilled') {
+        handleFulfill(this.value)
+      } else {
+        handleReject(this.value)
+      }
+    })
+  }
 }
+
+let saveResolve
+
+const p = new CusPromise((resolve) => {
+  saveResolve = resolve
+})
+
+p.then((value) => {
+  console.log('1 -', value)
+  return value + 1
+})
+  .then((value) => {
+    console.log('2 -', value)
+    return value + 1
+  })
+  .then((value) => {
+    console.log('3 -', value)
+    return value + 1
+  })
+
+saveResolve(100)
 // */
 
 /* //
-const formatPrice = (price) => price.toFixed(2)
-const buildReceipt = (price) => `Total: ${formatPrice(price)}`
-const printReceipt = (price) => console.log(buildReceipt(price))
+class CusPromise {
+  constructor(executor) {
+    if (typeof executor !== 'function') {
+      throw new TypeError('must be function')
+    }
 
-try {
-  printReceipt(150)
-  console.log('Printed')
-} catch (error) {
-  console.log('Failed')
-  console.log(error.stack)
+    this.state = 'pending'
+    this.value = undefined
+    this.handlers = []
+
+    const resolve = (data) => {
+      this.state = 'fulfilled'
+      this.value = data
+      this.handlers.forEach((handler) => handler.onFulfill(data))
+    }
+
+    const reject = (reason) => {
+      this.state = 'rejected'
+      this.value = reason
+      this.handlers.forEach((handler) => handler.onReject(reason))
+    }
+
+    executor(resolve, reject)
+  }
+
+  then(onFulfill, onReject) {
+    return new CusPromise((resolve, reject) => {
+      const handleFulfill = (data) => {
+        if (typeof onFulfill === 'function') {
+          resolve(onFulfill(data))
+        } else {
+          resolve(data)
+        }
+      }
+
+      const handleReject = (reason) => {
+        if (typeof onReject === 'function') {
+          reject(onReject(reason))
+        } else {
+          reject(reason)
+        }
+      }
+
+      if (this.state === 'pending') {
+        this.handlers.push({ onFulfill: handleFulfill, onReject: handleReject })
+      } else if (this.state === 'fulfilled') {
+        handleFulfill(this.value)
+      } else {
+        handleReject(this.value)
+      }
+    })
+  }
+
+  catch(onReject) {
+    return this.then(undefined, onReject)
+  }
 }
+
+let saveReject
+
+const p = new CusPromise((resolve, reject) => {
+  saveReject = reject
+})
+
+p.then((value) => console.log('успех:', value)).catch((reason) =>
+  console.log('поймали:', reason),
+)
+
+saveReject('ошибка')
 // */
 
-/* //
-import fs from 'fs'
+class CusPromise {
+  constructor(executor) {
+    if (typeof executor !== 'function') {
+      throw new TypeError('must be function')
+    }
 
-const content = fs.readFileSync('./myfile', 'utf-8')
-fs.writeFileSync('./myfile-copy', content)
-// */
+    this.state = 'pending'
+    this.value = undefined
+    this.handlers = []
 
-/* //
-import fs from 'fs'
-// пустая функция, чуть позже разберём её смысл,
-// но асинхронная версия readFile требует передачи функции третьим параметром
-const noop = () => {}
-const content = fs.readFile('./myfile', 'utf-8', noop)
-console.log(content)
-// */
+    const resolve = (data) => {
+      this.state = 'fulfilled'
+      this.value = data
+      this.handlers.forEach((handler) => handler.onFulfill(data))
+    }
 
-/* //
-import fs from 'fs'
+    const reject = (reason) => {
+      this.state = 'rejected'
+      this.value = reason
+      this.handlers.forEach((handler) => handler.onReject(reason))
+    }
 
-const callback = (_error, data) => console.log(data)
-fs.readFile('./myfile', 'utf-8', callback)
-// */
+    executor(resolve, reject)
+  }
 
-/* //
-import fs from 'node:fs'
+  then(onFulfill, onReject) {
+    return new CusPromise((resolve, reject) => {
+      const handleFulfill = (data) => {
+        if (typeof onFulfill === 'function') {
+          resolve(onFulfill(data))
+        } else {
+          resolve(data)
+        }
+      }
 
-const callback = (_error, data) => console.log(data)
-console.log('before read')
-// вызов функции не дожидается конца чтения файла,
-// код сразу продолжит выполняться дальше
-fs.readFile('./myfile', 'utf-8', callback)
-console.log('after read?')
-// */
+      const handleReject = (reason) => {
+        if (typeof onReject === 'function') {
+          reject(onReject(reason))
+        } else {
+          reject(reason)
+        }
+      }
 
-/* //
-import fs from 'node:fs'
+      if (this.state === 'pending') {
+        this.handlers.push({ onFulfill: handleFulfill, onReject: handleReject })
+      } else if (this.state === 'fulfilled') {
+        handleFulfill(this.value)
+      } else {
+        handleReject(this.value)
+      }
+    })
+  }
 
-fs.readFile('./myfile', 'utf-8', (_error, data) => console.log('First!'))
-fs.readFile('./myfile', 'utf-8', (_error, data) => console.log('Second!'))
-// */
+  catch(onReject) {
+    return this.then(undefined, onReject)
+  }
+}
 
-/* //
-import fs from 'fs'
+let saveReject
 
-console.log('Reading started')
+const p = new CusPromise((resolve, reject) => {
+  saveReject = reject
+})
 
-const callback = (_error, data) => console.log(data)
-
-fs.readFile('./note.txt', 'utf-8', callback)
-
-console.log('Reading requested')
-// */
-
-/* // 
-import fs from "node:fs";
-
-const result = fs.readFile("./myfile", "utf-8", () => {});
-console.log(result);
-// */
+p.then((value) => console.log(value)).catch((reason) =>
+  console.log('поймали:', reason),
+)
+saveReject('error')

@@ -1419,5 +1419,78 @@ export default (config) => {
 </details>
 
 ==================================================================
-Испытание-20: ПАРСИНГ КОНФИГУРАЦИИ |-|-|
+Испытание-21: МОРСКОЙ БОЙ 2 |-|-|
 ==================================================================
+Реализуйте и экспортируйте по умолчанию функцию, которая принимает на вход поле боя в виде квадратного двумерного массива из нулей и единиц. Ноль — пустая ячейка, единица — часть корабля. Функция должна вернуть количество кораблей на поле боя.
+
+В отличие от классической игры "Морской бой", в данном варианте корабли могут изгибаться буквой "г" и "змейкой".
+
+```js
+calcShipsCount([]) // 0
+calcShipsCount([
+  [1, 0, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 0],
+  [0, 0, 1, 0, 0, 0],
+  [1, 1, 1, 0, 0, 1],
+  [0, 0, 0, 0, 1, 1],
+  [0, 1, 0, 0, 1, 0],
+]) // 5
+```
+
+Подсказки
+При необходимости используйте функции из библиотеки es-toolkit
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution (the best)
+const calcShipsCount = (field) => {
+  const rows = field.length
+
+  if (rows === 0) return 0
+
+  const cols = field[0].length
+  const visited = field.map((row) => row.map(() => false))
+
+  let count = 0
+
+  for (let i = 0; i < rows; i += 1) {
+    for (let j = 0; j < cols; j += 1) {
+      if (field[i][j] !== 1 || visited[i][j]) continue
+
+      count += 1
+      const stack = [[i, j]]
+      visited[i][j] = true
+
+      while (stack.length) {
+        const [r, c] = stack.pop()
+        const neighbors = [
+          [r - 1, c],
+          [r + 1, c],
+          [r, c - 1],
+          [r, c + 1],
+        ]
+
+        for (const [nr, nc] of neighbors) {
+          if (
+            nr >= 0 &&
+            nr < rows &&
+            nc >= 0 &&
+            nc < cols &&
+            field[nr][nc] === 1 &&
+            !visited[nr][nc]
+          ) {
+            visited[nr][nc] = true
+            stack.push([nr, nc])
+          }
+        }
+      }
+    }
+  }
+
+  return count
+}
+```
+
+</details>
