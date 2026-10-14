@@ -1013,24 +1013,53 @@ export default class CustomPromise {
     if (typeof executor !== 'function') {
       throw new TypeError(errorMessage)
     }
-
     this.state = 'pending'
     this.value = undefined
     this.handlers = []
-
-    // после первого вызова resolve/reject остальные игнорируются
     let called = false
+
+    const settle = (state, value) => {
+      this.state = state
+      this.value = value
+      this.handlers.forEach((handler) => {
+        const fn = state === 'fulfilled' ? handler.onFulfill : handler.onReject
+        setTimeout(() => fn(value), 0)
+      })
+    }
 
     const resolve = (data) => {
       if (called) return
       called = true
-      this.resolveWith(data)
+      let used = false
+
+      try {
+        if (data && Object.hasOwn(data, 'then') && typeof data.then === 'function') {
+          data.then(
+            (value) => {
+              if (used) return
+              used = true
+              settle('fulfilled', value)
+            },
+            (reason) => {
+              if (used) return
+              used = true
+              settle('rejected', reason)
+            },
+          )
+        } else {
+          settle('fulfilled', data)
+        }
+      } catch (err) {
+        if (used) return
+        used = true
+        settle('rejected', err)
+      }
     }
 
     const reject = (reason) => {
       if (called) return
       called = true
-      this.finish('rejected', reason)
+      settle('rejected', reason)
     }
 
     try {
@@ -1040,56 +1069,38 @@ export default class CustomPromise {
     }
   }
 
-  // завершаем промис и запускаем обработчики асинхронно
-  finish(state, value) {
-    this.state = state
-    this.value = value
-    this.handlers.forEach(handler => setTimeout(handler, 0))
-  }
-
-  // проверка на thenable
-  resolveWith(data) {
-    let used = false
-    try {
-      const then = data && data.then
-      if (typeof then === 'function') {
-        then.call(
-          data,
-          (value) => {
-            if (used) return
-            used = true
-            this.resolveWith(value)
-          },
-          (reason) => {
-            if (used) return
-            used = true
-            this.finish('rejected', reason)
-          },
-        )
-        return
-      }
-    } catch (err) {
-      if (!used) this.finish('rejected', err)
-      return
-    }
-    this.finish('fulfilled', data)
-  }
-
-  then(onFulfill = value => value, onReject = (reason) => { throw reason }) {
+  then(onFulfill, onReject) {
     return new CustomPromise((resolve, reject) => {
-      const handler = () => {
-        const callback = this.state === 'fulfilled' ? onFulfill : onReject
+      const handleFulfill = (data) => {
         try {
-          resolve(callback(this.value))
+          if (typeof onFulfill === 'function') {
+            resolve(onFulfill(data))
+          } else {
+            resolve(data)
+          }
+        } catch (err) {
+          reject(err)
+        }
+      }
+
+      const handleReject = (reason) => {
+        try {
+          if (typeof onReject === 'function') {
+            resolve(onReject(reason))
+          } else {
+            reject(reason)
+          }
         } catch (err) {
           reject(err)
         }
       }
 
       if (this.state === 'pending') {
-        this.handlers.push(handler)
+        this.handlers.push({ onFulfill: handleFulfill, onReject: handleReject })
+      } else if (this.state === 'fulfilled') {
+        setTimeout(() => handleFulfill(this.value), 0)
       } else {
-        setTimeout(handler, 0)
+        setTimeout(() => handleReject(this.value), 0)
       }
     })
   }
@@ -1099,11 +1110,11 @@ export default class CustomPromise {
   }
 
   static resolve(data) {
-    return new CustomPromise(resolve => resolve(data))
+    return new CustomPromise((resolve) => resolve(data))
   }
 
-  static reject(data) {
-    return new CustomPromise((resolve, reject) => reject(data))
+  static reject(reason) {
+    return new CustomPromise((resolve, reject) => reject(reason))
   }
 }
 
@@ -1229,3 +1240,270 @@ export default CustomPromise
 ```
 
 </details>
+
+==================================================================
+Испытание-16: Промисы: event loop |-|
+==================================================================
+В данном испытании вы реализуете собственную версию объекта Promise.
+
+Необходимо создать в файле CustomPromise.js класс CustomPromise с цепочкой вызовов. В классе реализуйте метод then(onFulfill) и обеспечьте асинхронный вызов обработчиков. Обработчик из then() вызывается асинхронно, даже если промис уже выполнен, а сам промис меняет состояние сразу при вызове resolve(data).
+
+Алгоритм
+Используйте названия состояний из стандарта, так как они проверяются в тестах. Состояние хранится в поле экземпляра. До вызова resolve() оно равно 'pending', после вызова 'fulfilled'.
+
+Метод then() возвращает новый CustomPromise, который выполняется значением, возвращённым обработчиком. Поэтому вызовы then() складываются в цепочку, а resolve() можно вызвать и позже, например из таймера.
+
+В решении должны отсутствовать встроенные Promise и ключевое слово async. Только таймеры и вызовы функций из функций.
+
+Примеры использования
+
+```js
+import CustomPromise from './CustomPromise.js'
+
+const messages = []
+
+const resolvedPromise = new CustomPromise((resolve) => {
+  resolve('Сначала резолвим?')
+})
+
+const modifiedPromise = resolvedPromise.then(() => {
+  messages.push('Сначала меняем статус.')
+})
+
+await modifiedPromise.then(() => {
+  messages.push('А уже потом резолвим.')
+})
+
+console.log(messages.join(' ')) // Сначала меняем статус. А уже потом резолвим.
+
+const delayedPromise = new CustomPromise((resolve) => {
+  setTimeout(() => resolve('Resolved'), 100)
+})
+
+const result = await delayedPromise
+  .then((message) => `New another ${message}`)
+  .then((message) => message.toUpperCase())
+console.log(result) // NEW ANOTHER RESOLVED
+```
+
+Подсказки
+Задача опирается на возможности промисов, описанные в документации.
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const STATES = {
+  pending: 'pending',
+  fulfulled: 'fulfilled'
+}
+
+class CustomPromise {
+  constructor(executor) {
+    this.state = STATES.pending
+    this.value = undefined
+    this.handlers = []
+
+    const resolve = (data) => {
+      if (this.state !== STATES.pending) {
+        return
+      }
+
+      this.state = STATES.fulfulled
+      this.value = data
+      this.handlers.forEach((handler) => setTimeout(handler, 0))
+    }
+
+    executor(resolve)
+  }
+
+  then(onFulfill) {
+    return new CustomPromise((resolve) => {
+      const handler = () => resolve(onFulfill(this.value))
+
+      if (this.state === STATES.fulfulled) {
+        setTimeout(handler, 0)
+      } else {
+        this.handlers.push(handler)
+      }
+    })
+  }
+}
+
+export default CustomPromise
+
+// teacher solution
+const STATES = {
+  pending: 'pending',
+  fulfilled: 'fulfilled',
+}
+
+class CustomPromise {
+  constructor(executor) {
+    this.PromiseResult = null
+    this.PromiseState = STATES.pending
+    this.PromiseFulfillReactions = []
+
+    executor(this.resolve.bind(this))
+  }
+
+  resolve(result) {
+    this.PromiseState = STATES.fulfilled
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach(onFulfilled => onFulfilled(result))
+  }
+
+  then(onFulfilledHandler) {
+    return new CustomPromise((resolve) => {
+      const onFulfilledReaction = (result) => {
+        resolve(onFulfilledHandler(result))
+      }
+
+      if (this.PromiseState === STATES.fulfilled) {
+        setTimeout(() => onFulfilledReaction(this.PromiseResult), 0)
+        return
+      }
+
+      this.PromiseFulfillReactions.push(onFulfilledReaction)
+    })
+  }
+}
+
+export default CustomPromise
+
+```
+
+</details>
+
+==================================================================
+Испытание-17: Промисы: then |-|
+==================================================================
+Серия испытаний CustomPromise затрагивает множество тем, тесно связана со стандартом ecma и будет полезна для прокачки опытным разработчикам. Если темы классов и позднего связывания вам пока плохо знакомы, то продолжайте обучение и возвращайтесь к этим испытаниям позже.
+
+В данном испытании вы собственными силами начнёте реализовывать "облегчённую" версию объекта Promise. Последующие испытания будут раскрывать тему и дополнять её новой функциональностью.
+
+В данном испытании необходимо создать только класс, без асинхронности, но с цепочкой вызовов. Для этого реализуйте в классе CustomPromise из файла CustomPromise.js конструктор, принимающий колбек executor(resolve), а также метод then(callback). Конструктор сразу вызывает executor и передаёт ему функцию resolve. Метод then(callback) возвращает новый CustomPromise, который выполняется значением, возвращённым callback, поэтому вызовы then() складываются в цепочку.
+
+В решении должны отсутствовать встроенные Promise и ключевое слово async.
+
+Примеры использования
+
+```js
+import CustomPromise from './CustomPromise.js'
+
+const promise = new CustomPromise((resolve) => resolve('Hello, world!'))
+promise.then((value) => {
+  console.log(value) // 'Hello, world!'
+})
+
+const result = await promise
+  .then((value) => value.replace('Hello', 'Goodbye'))
+  .then((value) => value.toUpperCase())
+console.log(result) // GOODBYE, WORLD!
+```
+
+Подсказки
+
+- Вам понадобится вспомогательный метод, чтобы замыкать значения.
+- Задача опирается на возможности промисов, описанные в документации.
+- В решении учителя используется связывание через bind(), но в процессе решения можно упростить себе задачу, используя стрелочные функции.
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const STATES = {
+  pending: 'pending',
+  fulfilled: 'fullfilled',
+}
+
+export default class CustomPromise {
+  constructor(executor) {
+    this.PromiseState = STATES.pending
+    this.PromiseResult = null
+    this.PromiseFulfillReactions = []
+
+    executor(this.resolve.bind(this))
+  }
+
+  resolve(result) {
+    this.PromiseState = STATES.fulfilled
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach((onFulfilled) => onFulfilled(result))
+  }
+
+  then(onFulfilledHandler) {
+    return new CustomPromise((resolve) => {
+      const onFulfilledReaction = (result) => {
+        resolve(onFulfilledHandler(result))
+      }
+
+      if (this.PromiseState === STATES.fulfilled) {
+        onFulfilledReaction(this.PromiseResult)
+      } else {
+        this.PromiseFulfillReactions.push(onFulfilledReaction)
+      }
+    })
+  }
+}
+
+// teacher solution
+class CustomPromise {
+  constructor(executor) {
+    this.PromiseResult = null
+
+    executor(this.resolve.bind(this))
+    // executor(this.resolve); // Alternative way
+  }
+
+  // resolve = (result) => { // Alternative way
+  resolve(result) {
+    this.PromiseResult = result
+  }
+
+  then(callback) {
+    return new CustomPromise((resolve) => {
+      resolve(callback(this.PromiseResult))
+    })
+  }
+}
+
+export default CustomPromise
+
+```
+
+</details>
+
+==================================================================
+Испытание-18: Список файлов и директорий |-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию в файле ls.js функцию, которая принимает на вход путь (абсолютный или относительный) и возвращает информацию о файлах и директориях, расположенных по этому пути. Функция возвращает промис с массивом объектов, где каждый элемент содержит путь к файлу (filepath) и описание доступов (mode из stats.mode). Объекты в массиве должны быть отсортированы по имени файла в обратном порядке. Путь в filepath всегда абсолютный, даже если функция получила относительный.
+
+Примеры
+
+```js
+import ls from './ls.js'
+
+await ls('/var')
+// [
+//   { filepath: '/var/log', mode: 16877 },
+//   { filepath: '/var/lock', mode: 17407 },
+//   { filepath: '/var/local', mode: 17917 },
+// ];
+
+await ls('/etc/passwd')
+// [{ filepath: '/etc/passwd', mode: 33188 }];
+
+await ls('../../../../etc/passwd')
+// [{ filepath: '/etc/passwd', mode: 33188 }];
+```
+
+Эта функция должна уметь обрабатывать не только директории, но и файлы. В таком случае отдается массив с одним объектом — информацией по текущему файлу.
+
+Подсказки
+fsp.readdir() читает директорию и отдаёт имена без пути к ней
+fsp.stat() отдаёт информацию о файле. Метод stats.isFile() проверяет, является ли файлом переданный путь, а поле stats.mode описывает доступ
+path.resolve() превращает относительный путь в абсолютный
+zipWith() это вспомогательная функция из es-toolkit

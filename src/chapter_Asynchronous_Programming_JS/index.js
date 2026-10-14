@@ -1,209 +1,62 @@
-/* //
+//* //
+const STATES = {
+  pending: 'pending',
+  fulfulled: 'fulfilled',
+}
+
 class CusPromise {
   constructor(executor) {
-    if (typeof executor !== 'function') {
-      throw new TypeError('must be function')
-    }
+    this.PromiseState = STATES.pending
+    this.PromiseResult = null
+    this.PromiseFulfillReactions = []
 
-    this.state = 'pending'
-    this.value = undefined
-    this.handlers = []
-
-    const resolve = (data) => {
-      this.state = 'fulfilled'
-      this.value = data
-      this.handlers.forEach((handler) => handler.onFulfill(data))
-    }
-
-    const reject = (reason) => {
-      this.state = 'rejected'
-      this.value = reason
-      this.handlers.forEach((handler) => handler.onReject(reason))
-    }
-
-    executor(resolve, reject)
+    executor(this.resolve.bind(this))
   }
 
-  then(onFulfill, onReject) {
-    return new CusPromise((resolve, reject) => {
-      const handleFulfill = (value) => {
-        resolve(onFulfill(value))
+  resolve(result) {
+    this.PromiseState = STATES.fulfulled
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach((onFulfilled) => onFulfilled(result))
+  }
+
+  then(onFulfilledHandler) {
+    return new CusPromise((resolve) => {
+      const onFulfilledReaction = (result) => {
+        resolve(onFulfilledHandler(result))
       }
 
-      const handleReject = (reason) => {
-        reject(onReject(reason))
-      }
-
-      if (this.state === 'pending') {
-        this.handlers.push({ onFulfill: handleFulfill, onReject: handleReject })
-      } else if (this.state === 'fulfilled') {
-        handleFulfill(this.value)
+      if (this.PromiseState === STATES.fulfulled) {
+        setTimeout(() => onFulfilledReaction(this.PromiseResult), 0)
+        return
       } else {
-        handleReject(this.value)
+        this.PromiseFulfillReactions.push(onFulfilledReaction)
       }
     })
   }
 }
 
-let saveResolve
+const messages = []
 
-const p = new CusPromise((resolve) => {
-  saveResolve = resolve
+const resolvedPromise = new CusPromise((resolve) => {
+  resolve('Сначала резолвим?')
 })
 
-p.then((value) => {
-  console.log('1 -', value)
-  return value + 1
+const modifiedPromise = resolvedPromise.then(() => {
+  messages.push('Сначала меняем статус.')
 })
-  .then((value) => {
-    console.log('2 -', value)
-    return value + 1
-  })
-  .then((value) => {
-    console.log('3 -', value)
-    return value + 1
-  })
 
-saveResolve(100)
+await modifiedPromise.then(() => {
+  messages.push('А уже потом резолвим.')
+})
+
+console.log(messages.join(' ')) // Сначала меняем статус. А уже потом резолвим.
+
+const delayedPromise = new CusPromise((resolve) => {
+  setTimeout(() => resolve('Resolved'), 100)
+})
+
+const result = await delayedPromise
+  .then((message) => `New another ${message}`)
+  .then((message) => message.toUpperCase())
+console.log(result) // NEW ANOTHER RESOLVED
 // */
-
-/* //
-class CusPromise {
-  constructor(executor) {
-    if (typeof executor !== 'function') {
-      throw new TypeError('must be function')
-    }
-
-    this.state = 'pending'
-    this.value = undefined
-    this.handlers = []
-
-    const resolve = (data) => {
-      this.state = 'fulfilled'
-      this.value = data
-      this.handlers.forEach((handler) => handler.onFulfill(data))
-    }
-
-    const reject = (reason) => {
-      this.state = 'rejected'
-      this.value = reason
-      this.handlers.forEach((handler) => handler.onReject(reason))
-    }
-
-    executor(resolve, reject)
-  }
-
-  then(onFulfill, onReject) {
-    return new CusPromise((resolve, reject) => {
-      const handleFulfill = (data) => {
-        if (typeof onFulfill === 'function') {
-          resolve(onFulfill(data))
-        } else {
-          resolve(data)
-        }
-      }
-
-      const handleReject = (reason) => {
-        if (typeof onReject === 'function') {
-          reject(onReject(reason))
-        } else {
-          reject(reason)
-        }
-      }
-
-      if (this.state === 'pending') {
-        this.handlers.push({ onFulfill: handleFulfill, onReject: handleReject })
-      } else if (this.state === 'fulfilled') {
-        handleFulfill(this.value)
-      } else {
-        handleReject(this.value)
-      }
-    })
-  }
-
-  catch(onReject) {
-    return this.then(undefined, onReject)
-  }
-}
-
-let saveReject
-
-const p = new CusPromise((resolve, reject) => {
-  saveReject = reject
-})
-
-p.then((value) => console.log('успех:', value)).catch((reason) =>
-  console.log('поймали:', reason),
-)
-
-saveReject('ошибка')
-// */
-
-class CusPromise {
-  constructor(executor) {
-    if (typeof executor !== 'function') {
-      throw new TypeError('must be function')
-    }
-
-    this.state = 'pending'
-    this.value = undefined
-    this.handlers = []
-
-    const resolve = (data) => {
-      this.state = 'fulfilled'
-      this.value = data
-      this.handlers.forEach((handler) => handler.onFulfill(data))
-    }
-
-    const reject = (reason) => {
-      this.state = 'rejected'
-      this.value = reason
-      this.handlers.forEach((handler) => handler.onReject(reason))
-    }
-
-    executor(resolve, reject)
-  }
-
-  then(onFulfill, onReject) {
-    return new CusPromise((resolve, reject) => {
-      const handleFulfill = (data) => {
-        if (typeof onFulfill === 'function') {
-          resolve(onFulfill(data))
-        } else {
-          resolve(data)
-        }
-      }
-
-      const handleReject = (reason) => {
-        if (typeof onReject === 'function') {
-          reject(onReject(reason))
-        } else {
-          reject(reason)
-        }
-      }
-
-      if (this.state === 'pending') {
-        this.handlers.push({ onFulfill: handleFulfill, onReject: handleReject })
-      } else if (this.state === 'fulfilled') {
-        handleFulfill(this.value)
-      } else {
-        handleReject(this.value)
-      }
-    })
-  }
-
-  catch(onReject) {
-    return this.then(undefined, onReject)
-  }
-}
-
-let saveReject
-
-const p = new CusPromise((resolve, reject) => {
-  saveReject = reject
-})
-
-p.then((value) => console.log(value)).catch((reason) =>
-  console.log('поймали:', reason),
-)
-saveReject('error')

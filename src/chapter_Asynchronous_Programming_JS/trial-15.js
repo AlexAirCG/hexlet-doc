@@ -1,61 +1,74 @@
 //* // Промисы: thenable и static
-const errorMessage = 'Executor must be a function'
+const errorMessage = 'must be a function'
+
+const STATES = {
+  pending: 'pending',
+  fulfilled: 'fulfilled',
+  rejected: 'rejected',
+}
 
 export default class CustomPromise {
   constructor(executor) {
     if (typeof executor !== 'function') {
       throw new TypeError(errorMessage)
     }
-    this.state = 'pending'
-    this.value = undefined
-    this.handlers = [] // список функций которые ждут результата
 
-    const resolve = (data) => {
-      this.state = 'fulfilled'
-      this.value = data
-      this.handlers.forEach((handler) => handler.onFulfill(data))
+    this.PromiseState = STATES.pending
+    this.PromiseRsult = null
+    this.PromiseFulfillReactions = []
+    this.PromiseRejectReactions = []
+
+    try {
+      executor(this.resolve.bind(this), this.reject.bind(this))
+    } catch (err) {
+      this.reject(err)
+    }
+  }
+
+  static resolve(value) {
+    return new CustomPromise((resolve) => resolve(value))
+  }
+
+  static reject(value) {
+    return new CustomPromise((_, reject) => reject(value))
+  }
+
+  isThenable(value) {
+    return (
+      value && Object.hasOwn(value, 'then') && typeof value.then === 'function'
+    )
+  }
+
+  resolve(result) {
+    if (this.PromiseState !== STATES.pending) {
+      return
     }
 
-    const reject = (reason) => {
-      this.state = 'rejected'
-      this.value = reason
-      this.handlers.forEach((hendler) => hendler.onReject(reason))
+    if (this.isThenable(result)) {
+      result.then(this.resolve.bind(this), this.reject.bind(this))
+      return
     }
 
-    executor(resolve, reject)
+    this.PromiseState = STATES.fulfilled
+    this.PromiseRsult = result
+    this.PromiseFulfillReactions.forEach((onFulfilled) => onFulfilled(result))
   }
 
-  then(onFulfill, onReject) {
-    return new CustomPromise((resolve, reject) => {
-      const handleFunfill = (data) => {
-        if (typeof onFulfill === 'function') {
-          resolve(onFulfill(data))
-        } else {
-          resolve(data)
-        }
-      }
+  reject(error) {
+    if (this.PromiseState !== STATES.pending) {
+      return
+    }
 
-      const handleReject = (reason) => {
-        if (typeof onReject === 'function') {
-          reject(onReject(reason))
-        } else {
-          reject(reason)
-        }
-      }
-
-      if (this.state === 'pending') {
-        this.handlers.push({ onFulfill: handleFunfill, onReject: handleReject })
-      } else if (this.state === 'fulfilled') {
-        handleFunfill(this.value)
-      } else {
-        handleReject(this.value)
-      }
-    })
+    this.PromiseState = STATES.rejected
+    this.PromiseRsult = error
+    this.PromiseRejectReactions.forEach((onRejected) => onRejected(error))
   }
 
-  catch(onReject) {
-    return this.then(undefined, onReject)
+  then(onFunfilled, onRejected) {
+    return new CustomPromise()
   }
+
+  catch(onRejected) {}
 }
 // */
 
