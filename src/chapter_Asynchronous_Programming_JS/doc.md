@@ -1507,3 +1507,819 @@ fsp.readdir() читает директорию и отдаёт имена бе�
 fsp.stat() отдаёт информацию о файле. Метод stats.isFile() проверяет, является ли файлом переданный путь, а поле stats.mode описывает доступ
 path.resolve() превращает относительный путь в абсолютный
 zipWith() это вспомогательная функция из es-toolkit
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+import zipWith from 'es-toolkit/compat/zipWith'
+import path from 'path'
+import fsp from 'fs/promises'
+
+const ls = async (inputPath) => {
+  const fullPath = path.resolve(inputPath)
+  const stats = await fsp.stat(fullPath)
+
+  if (stats.isFile()) {
+    return [{ filepath: fullPath, mode: stats.mode }]
+  }
+
+  const names = await fsp.readdir(fullPath)
+  const sortedNames = names.sort().reverse()
+  const filepaths = sortedNames.map((name) => path.join(fullPath, name))
+
+  const allStats = await Promise.all(
+    filepaths.map((filepath) => fsp.stat(filepath)),
+  )
+
+  return zipWith(filepaths, allStats, (filepath, fileStats) => ({
+    filepath,
+    mode: fileStats.mode,
+  }))
+}
+
+export default ls
+
+// teacher solution
+import { zipWith } from 'es-toolkit'
+import path from 'path'
+import fsp from 'fs/promises'
+
+export default async (pathForInspect) => {
+  const absolutePath = path.resolve(pathForInspect)
+  const stat = await fsp.stat(absolutePath)
+  if (stat.isFile()) { // guard expression
+    return [{ filepath: absolutePath, mode: stat.mode }]
+  }
+
+  const filenames = await fsp.readdir(absolutePath)
+  const filepaths = filenames.sort((a, b) => (a > b ? -1 : 1))
+    .map(filename => path.join(absolutePath, filename))
+  const stats = await Promise.all(filepaths.map(filePath => fsp.stat(filePath)))
+
+  return zipWith(filepaths, stats, (filepath, { mode }) => ({ filepath, mode }))
+}
+
+```
+
+</details>
+
+==================================================================
+Испытание-19: Промисы: состояние |-|
+==================================================================
+В этом испытании вы познакомитесь с автоматным программированием.
+
+Реализуйте в классе CustomPromise из файла CustomPromise.js метод then(callback) и вызов обработчиков на основе состояния объекта. Состояния запишите в объект STATES и используйте его вместо текстовых значений.
+
+Алгоритм
+Для решения данной задачи вам уже понадобится "подглядывать" в стандарт, чтобы разобраться с неймингом и общим алгоритмом. В нём указаны состояния, между которыми совершаются переходы, начальное состояние объекта и "реакции" (функции) на изменение состояния.
+
+Чтобы не усложнять реализацию, достаточно одного состояния pending. Промис хранит его в поле экземпляра с момента создания и очищает при вызове resolve(). После этого слово pending не встречается ни в одном поле экземпляра. На изменение состояния должна происходить реакция, а если объект находится в начальном состоянии, то реакции должны накапливаться и вызываться после resolve().
+
+В решении должны отсутствовать встроенные Promise и ключевое слово async. Только вызовы функций из функций.
+
+Примеры использования
+
+```js
+import CustomPromise from './CustomPromise.js'
+
+const promise = new CustomPromise((resolve) => resolve('Hello, world!'))
+promise.then((value) => {
+  console.log(value) // 'Hello, world!'
+})
+
+const result = await promise
+  .then((value) => value.replace('Hello', 'Goodbye'))
+  .then((value) => value.toUpperCase())
+console.log(result) // GOODBYE, WORLD!
+
+const delayedPromise = new CustomPromise((resolve) => {
+  setTimeout(() => resolve('Resolved'), 100)
+})
+
+const delayedResult = await delayedPromise.then(
+  (message) => `Another ${message}`,
+)
+console.log(delayedResult) // Another Resolved
+```
+
+Подсказки
+Задача опирается на возможности промисов, описанные в документации.
+
+Если почувствуете, что нужны дополнительные материалы:
+
+описание стандарта, который имплементируется в упражнении
+курс "Синхронная асинхронность", чуть глубже погружающий в тему
+курс "Автоматное программирование" о конечных автоматах, чем является промис
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const STATES = {
+  pending: 'pending',
+}
+
+class CustomPromise {
+  constructor(executor) {
+    this.PromiseState = STATES.pending
+    this.PromiseResult = null
+    this.PromiseFulfillReactions = []
+
+    executor(this.resolve.bind(this))
+  }
+
+  resolve(result) {
+    if (this.PromiseState !== STATES.pending) {
+      return
+    }
+
+    delete this.PromiseState
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach((onFulfilled) => onFulfilled(result))
+  }
+
+  then(callback) {
+    return new CustomPromise((resolve) => {
+      const onFulfilledReaction = (result) => {
+        resolve(callback(result))
+      }
+
+      if (this.PromiseState === STATES.pending) {
+        this.PromiseFulfillReactions.push(onFulfilledReaction)
+        return
+      }
+      onFulfilledReaction(this.PromiseResult)
+    })
+  }
+}
+
+export default CustomPromise
+
+// teacher solution
+const STATES = {
+  pending: 'pending',
+}
+
+class CustomPromise {
+  constructor(executor) {
+    this.PromiseResult = null
+    this.PromiseState = STATES.pending
+    this.PromiseFulfillReactions = []
+
+    executor(this.resolve.bind(this))
+  }
+
+  resolve(result) {
+    this.PromiseResult = result
+    this.PromiseState = ''
+    this.PromiseFulfillReactions.forEach((onFulfill) => onFulfill(result))
+  }
+
+  then(onFulfilledHandler) {
+    return new CustomPromise((resolve) => {
+      const onFulfilledReaction = (result) => {
+        resolve(onFulfilledHandler(result))
+      }
+
+      if (this.PromiseState !== STATES.pending) {
+        onFulfilledReaction(this.PromiseResult)
+        return
+      }
+
+      this.PromiseFulfillReactions.push(onFulfilledReaction)
+    })
+  }
+}
+```
+
+</details>
+
+==================================================================
+Испытание-20: Звонящий таймер |-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию в файле timer.js функцию, которая возвращает объект-таймер. Таймер "заводится" на определенное время и запускается. Каждые 100 миллисекунд он вызывает колбек, передавая туда два параметра: state со значением working и elapsedTime содержащий прошедшее время со старта таймера (в миллисекундах). Когда таймер завершился, то он вызывает тот же колбек с параметром state и значением finished.
+
+```js
+// Колбек
+const cb = ({ state, elapsedTime }) => {
+  switch (state) {
+    case 'working':
+      console.log(`Time elapsed: ${elapsedTime}`)
+      break
+    case 'finished':
+      console.log(`Timer has finished!`)
+  }
+}
+
+// Создается объект-таймер
+const timer = makeTimer(300, cb) // Завели на 300 миллисекунд
+timer.start()
+// Time elapsed: 100
+// Time elapsed: 200
+// Time elapsed: 300
+// Timer has finished!
+Тик, на котором прошедшее время превысило заданное, колбек со state working уже не получает. Вместо него приходит finished, поэтому таймер на 50 миллисекунд не отдаёт ни одного тика working.
+
+const shortTimer = makeTimer(50, cb)
+shortTimer.start()
+// Timer has finished!
+```
+
+Подсказки
+
+- Таймеры
+  https://ru.hexlet.io/courses/js-asynchronous-programming/lessons/timers/theory_unit
+- Для запуска таймера используйте setInterval
+- Для остановки clearInterval
+- Каждый новый тик не должен никак влиять на другие тики. Данные должны быть изолированы
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const makeTimer = (totalTime, cb) => {
+  const interval = 100
+
+  return {
+    start() {
+      let elapsedTime = 0
+      const intervalId = setInterval(() => {
+        elapsedTime += interval
+        if (elapsedTime > totalTime) {
+          clearInterval(intervalId)
+          cb({ state: 'finished' })
+          return
+        }
+        cb({ state: 'working', elapsedTime })
+      }, interval)
+    },
+  }
+}
+
+export default makeTimer
+
+// teacher solution
+export default (totalTime, cb) => ({
+  step: 100,
+  totalTime,
+  elapsedTime: 0,
+  tick() {
+    const newElapsedTime = this.elapsedTime + this.step
+    if (newElapsedTime > this.totalTime) {
+      clearInterval(this.intervalId)
+      cb({ state: 'finished' })
+      return
+    }
+
+    this.elapsedTime = newElapsedTime
+    cb({ state: 'working', elapsedTime: this.elapsedTime })
+  },
+  start() {
+    this.intervalId = setInterval(this.tick.bind(this), this.step)
+  },
+})
+
+```
+
+</details>
+
+==================================================================
+Испытание-21: Промисы: catch |-|
+==================================================================
+В данном испытании вы реализуете собственную версию объекта Promise.
+
+Реализуйте в классе CustomPromise из файла CustomPromise.js конструктор, принимающий колбек executor(resolve, reject), методы then(onFulfill, onReject) и catch(onReject), и обеспечьте корректный перехват ошибок с передачей в соответствующие обработчики.
+
+Алгоритм
+Промис завершается один раз, поэтому вызовы resolve() и reject() после первого из них игнорируются. Обработчики из then() вызываются асинхронно, даже если промис уже завершён. Ошибка, выброшенная в обработчике then() или catch(), отклоняет промис, который вернул этот метод. Значение, возвращённое из catch(), выполняет этот промис. Отклонённый промис пропускает обработчики then() без onReject до ближайшего catch().
+
+В решении должны отсутствовать встроенные Promise и ключевое слово async. Только таймеры и вызовы функций из функций.
+
+Примеры использования
+
+```js
+import CustomPromise from './CustomPromise.js'
+
+const resolvedPromise = new CustomPromise((resolve) => resolve('Hello, world!'))
+resolvedPromise
+  .then((value) => {
+    console.log(value) // 'Hello, world!'
+    throw new Error('Goodbye, world!')
+  })
+  .catch((err) => console.error(err)) // 'Error: Goodbye, world!'
+
+const rejectedPromise = new CustomPromise((_, reject) =>
+  reject('Hello, world!'),
+)
+const result = await rejectedPromise
+  .catch((rejectMessage) => rejectMessage.split(' '))
+  .then(([firstWord]) => firstWord + ' Pepe!')
+console.log(result) // Hello, Pepe!
+```
+
+Подсказки
+Задача опирается на возможности промисов, описанные в документации.
+
+Если почувствуете, что нужны дополнительные материалы:
+
+описание стандарта, который имплементируется в упражнении
+курс "Синхронная асинхронность", чуть глубже погружающий в тему
+курс "Автоматное программирование" о конечных автоматах, чем является промис
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+class CustomPromise {
+  constructor(executor) {
+    if (typeof executor !== 'function') {
+      throw new TypeError('error')
+    }
+
+    this.states = {
+      pending: 'pending',
+      fulfilled: 'fulfilled',
+      rejected: 'rejected',
+    }
+
+    this.PromiseState = this.states.pending
+    this.PromiseResult = null
+    this.PromiseFulfillReactions = []
+    this.PromiseRejectReactions = []
+
+    try {
+      executor(this.resolve.bind(this), this.reject.bind(this))
+    } catch (err) {
+      this.reject(err)
+    }
+  }
+
+  isThenable(value) {
+    return (
+      value && Object.hasOwn(value, 'then') && typeof value.then === 'function'
+    )
+  }
+
+  resolve(result) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+
+    if (this.isThenable(result)) {
+      return result.then(this.resolve.bind(this), this.reject.bind(this))
+    }
+
+    this.PromiseState = this.states.fulfilled
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach((onFulfilled) => {
+      setTimeout(() => onFulfilled(result), 0)
+    })
+  }
+
+  reject(error) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+
+    this.PromiseState = this.states.rejected
+    this.PromiseResult = error
+    this.PromiseRejectReactions.forEach((onRejected) => {
+      setTimeout(() => onRejected(error), 0)
+    })
+  }
+
+  then(onFulfilled, onRejected) {
+    return new CustomPromise((resolve, reject) => {
+      let onFulfilledHandler = onFulfilled
+      let onRejectedHandler = onRejected
+      if (typeof onFulfilledHandler !== 'function') {
+        onFulfilledHandler = (arg) => arg
+      }
+      if (typeof onRejectedHandler !== 'function') {
+        onRejectedHandler = (arg) => {
+          throw arg
+        }
+      }
+
+      const onFulfilledReaction = (result) => {
+        try {
+          resolve(onFulfilledHandler(result))
+        } catch (e) {
+          reject(e)
+        }
+      }
+
+      const onRejectedReaction = (error) => {
+        try {
+          resolve(onRejectedHandler(error))
+        } catch (e) {
+          reject(e)
+        }
+      }
+
+      if (this.PromiseState === this.states.fulfilled) {
+        setTimeout(() => onFulfilledReaction(this.PromiseResult), 0)
+        return
+      }
+
+      if (this.PromiseState === this.states.rejected) {
+        setTimeout(() => onRejectedReaction(this.PromiseResult), 0)
+        return
+      }
+
+      this.PromiseFulfillReactions.push(onFulfilledReaction)
+      this.PromiseRejectReactions.push(onRejectedReaction)
+    })
+  }
+
+  catch(onRejected) {
+    return this.then(null, onRejected)
+  }
+}
+
+export default CustomPromise
+
+// teacher solution
+const defaultOnFulfilledHandler = x => x
+const defaultOnRejectedHandler = (err) => {
+  throw err
+}
+
+class CustomPromise {
+  constructor(executor) {
+    this.states = {
+      pending: 'pending',
+      fulfilled: 'fulfilled',
+      rejected: 'rejected',
+    }
+    this.PromiseResult = null
+    this.PromiseState = this.states.pending
+    this.PromiseRejectReactions = []
+    this.PromiseFulfillReactions = []
+
+    try {
+      executor(this.resolve.bind(this), this.reject.bind(this))
+    }
+    catch (err) {
+      this.reject(err)
+    }
+  }
+
+  resolve(result) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+
+    this.PromiseState = this.states.fulfilled
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach(onFulfilled => onFulfilled(result))
+  }
+
+  reject(error) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+    this.PromiseState = this.states.rejected
+    this.PromiseResult = error
+    this.PromiseRejectReactions.forEach(onRejected => onRejected(error))
+  }
+
+  catch(onRejectedHandler) {
+    return this.then(defaultOnFulfilledHandler, onRejectedHandler)
+  }
+
+  then(onFulfilledHandler, onRejectedHandler = defaultOnRejectedHandler) {
+    return new CustomPromise((resolve, reject) => {
+      const onFulfilledReaction = (result) => {
+        try {
+          resolve(onFulfilledHandler(result))
+        }
+        catch (e) {
+          reject(e)
+        }
+      }
+
+      const onRejectedReaction = (error) => {
+        try {
+          resolve(onRejectedHandler(error))
+        }
+        catch (e) {
+          reject(e)
+        }
+      }
+
+      if (this.PromiseState === this.states.fulfilled) {
+        setTimeout(() => onFulfilledReaction(this.PromiseResult), 0)
+        return
+      }
+
+      if (this.PromiseState === this.states.rejected) {
+        setTimeout(() => onRejectedReaction(this.PromiseResult), 0)
+        return
+      }
+
+      this.PromiseFulfillReactions.push(onFulfilledReaction)
+      this.PromiseRejectReactions.push(onRejectedReaction)
+    })
+  }
+}
+
+export default CustomPromise
+
+```
+
+</details>
+
+==================================================================
+Испытание-22: Промисы: reject |-|
+==================================================================
+В данном испытании вы реализуете собственную версию объекта Promise.
+
+Реализуйте в классе CustomPromise из файла CustomPromise.js конструктор, принимающий колбек executor(resolve, reject) и метод then(onFulfill, onReject). Промис завершается один раз, поэтому вызовы resolve() и reject() после первого из них игнорируются. Обработчики из then() вызываются асинхронно, даже если промис уже завершён.
+
+Алгоритм
+Чтобы запускать реакции, накопленные по соответствующему состоянию промиса, сам объект с состояниями можно реализовать внутри конструктора.
+
+В решении должны отсутствовать встроенные Promise и ключевое слово async. Только таймеры и вызовы функций из функций.
+
+Метод catch() в этом испытании реализовывать не нужно, пусть всё попадает в then(). Если у then() нет обработчика onReject, новый промис выполняется тем значением, с которым был отклонён исходный, и следующий then() получает его как обычное значение.
+
+Примеры использования
+
+```js
+import CustomPromise from './CustomPromise.js'
+
+const promise = new CustomPromise((resolve, reject) => reject('Hello, world!'))
+promise.then((value) => {
+  console.log(value) // Данный обработчик будет пропущен
+})
+
+// Обработчик onReject не передан, поэтому значение из reject проходит дальше без изменений
+const result = await promise.then((x) => x.toUpperCase())
+console.log(result) // 'Hello, world!'
+```
+
+Подсказки
+Задача опирается на возможности промисов, описанные в документации.
+
+Если почувствуете, что нужны дополнительные материалы:
+
+курс "Синхронная асинхронность", чуть глубже погружающий в тему
+курс "Автоматное программирование" о конечных автоматах, чем является промис
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const errorMessage = 'must be Function'
+const defaultFulfilledHandler = (arg) => arg
+const defaultRejectedHandler = (arg) => arg
+
+export default class CustomPromise {
+  constructor(executor) {
+    if (typeof executor !== 'function') {
+      throw new TypeError(errorMessage)
+    }
+
+    this.states = {
+      pending: 'pending',
+      fulfilled: 'fulfilled',
+      rejected: 'rejected',
+    }
+
+    this.PromiseState = this.states.pending
+    this.PromiseResult = null
+    this.PromiseFulfillReactions = []
+    this.PromiseRejectReactions = []
+
+    try {
+      executor(this.resolve.bind(this), this.reject.bind(this))
+    } catch (err) {
+      this.reject(err)
+    }
+  }
+
+  isThenable(value) {
+    return (
+      value && Object.hasOwn(value, 'then') && typeof value.then === 'function'
+    )
+  }
+
+  resolve(result) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+
+    if (this.isThenable(result)) {
+      return result.then(this.resolve.bind(this), this.reject.bind(this))
+    }
+
+    this.PromiseState = this.states.fulfilled
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach((onFulfilled) => {
+      setTimeout(() => onFulfilled(result), 0)
+    })
+  }
+
+  reject(error) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+
+    this.PromiseState = this.states.rejected
+    this.PromiseResult = error
+    this.PromiseRejectReactions.forEach((onRejected) => {
+      setTimeout(() => onRejected(error), 0)
+    })
+  }
+
+  then(onFulfilled, onRejected) {
+    return new CustomPromise((resolve, reject) => {
+      const onFulfilledHandler =
+        typeof onFulfilled === 'function'
+          ? onFulfilled
+          : defaultFulfilledHandler
+
+      const onRejectedHandler =
+        typeof onRejected === 'function' ? onRejected : defaultRejectedHandler
+
+      const onFulfilledReaction = (result) => {
+        try {
+          resolve(onFulfilledHandler(result))
+        } catch (e) {
+          reject(e)
+        }
+      }
+
+      const onRejectedReaction = (error) => {
+        try {
+          resolve(onRejectedHandler(error))
+        } catch (e) {
+          reject(e)
+        }
+      }
+
+      if (this.PromiseState === this.states.fulfilled) {
+        setTimeout(() => onFulfilledReaction(this.PromiseResult), 0)
+        return
+      }
+
+      if (this.PromiseState === this.states.rejected) {
+        setTimeout(() => onRejectedReaction(this.PromiseResult), 0)
+        return
+      }
+
+      this.PromiseFulfillReactions.push(onFulfilledReaction)
+      this.PromiseRejectReactions.push(onRejectedReaction)
+    })
+  }
+
+  catch(onRejected) {
+    return this.then(defaultFulfilledHandler, onRejected)
+  }
+}
+
+// teacher solution
+const identity = x => x
+
+class CustomPromise {
+  // BEGIN
+  constructor(executor) {
+    this.states = {
+      pending: 'pending',
+      fulfilled: 'fulfilled',
+      rejected: 'rejected',
+    }
+    this.PromiseResult = null
+    this.PromiseState = this.states.pending
+    this.PromiseFulfillReactions = []
+    this.PromiseRejectReactions = []
+
+    executor(this.resolve.bind(this), this.reject.bind(this))
+  }
+
+  resolve(result) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+    this.PromiseState = this.states.fulfilled
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach(onFulfilled => onFulfilled(result))
+  }
+
+  reject(error) {
+    if (this.PromiseState !== this.states.pending) {
+      return
+    }
+    this.PromiseState = this.states.rejected
+    this.PromiseResult = error
+    this.PromiseRejectReactions.forEach(onRejected => onRejected(error))
+  }
+  // END
+
+  then(onFulfilledHandler, onRejectedHandler = identity) {
+    return new CustomPromise((resolve) => {
+      // BEGIN
+      const onFulfilledReaction = (result) => {
+        resolve(onFulfilledHandler(result))
+      }
+      const onRejectedReaction = (result) => {
+        resolve(onRejectedHandler(result))
+      }
+
+      if (this.PromiseState === this.states.fulfilled) {
+        setTimeout(() => onFulfilledReaction(this.PromiseResult), 0)
+        return
+      }
+
+      if (this.PromiseState === this.states.rejected) {
+        setTimeout(() => onRejectedReaction(this.PromiseResult), 0)
+        return
+      }
+
+      this.PromiseFulfillReactions.push(onFulfilledReaction)
+      this.PromiseRejectReactions.push(onRejectedReaction)
+      // END
+    })
+  }
+}
+
+export default CustomPromise
+
+```
+
+</details>
+
+==================================================================
+Испытание-23: Промисификация |-|
+==================================================================
+Реализуйте и экспортируйте по умолчанию в файле promisify.js функцию, которая «промисифицирует» асинхронные функции с колбеками, как util.promisify() из Node.js.
+
+Функция promisify() принимает функцию, которая последним аргументом ждёт колбек по соглашению error-first, то есть (error, data). Она возвращает новую функцию. Новая функция принимает те же аргументы без колбека, сама добавляет колбек последним аргументом, вызывает исходную функцию и возвращает промис. Если колбек получил ошибку, промис отклоняется с ней, иначе промис завершается значением data.
+
+```js
+import fs from 'fs'
+import promisify from './promisify.js'
+
+const readFile = promisify(fs.readFile)
+const writeFile = promisify(fs.writeFile)
+
+const filepath = '/tmp/myfile'
+
+writeFile(filepath, 'content')
+  .then(() => readFile(filepath, 'utf-8'))
+  .then(console.log)
+// content
+```
+
+Для отсутствующего файла промис отклоняется ошибкой из колбека.
+
+readFile('/tmp/missing').catch((error) => console.log(error.code))
+// ENOENT
+Подсказка
+Аргументы новой функции собирают остаточные параметры (...args), а передаёт их в исходную функцию spread-оператор.
+
+<details>
+  <summary>Посмотреть решение</summary>
+
+```js
+// my solution
+const promisify = (fn) => {
+  const newFunction = (...args) => {
+    const promise = new Promise((resolve, reject) => {
+      const callback = (error, data) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(data)
+        }
+      }
+
+      fn(...args, callback)
+    })
+
+    return promise
+  }
+
+  return newFunction
+}
+
+export default promisify
+
+// teacher solution
+export default asyncFn => (...args) => {
+  const promise = new Promise((resolve, reject) => {
+    asyncFn(...args, (err, data) => (err ? reject(err) : resolve(data)))
+  })
+  return promise
+}
+
+```
+
+</details>

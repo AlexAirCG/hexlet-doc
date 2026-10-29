@@ -1,6 +1,9 @@
 //* // Промисы: thenable и static
-const errorMessage = 'must be a function'
-
+const errorMessage = 'Executor must be a function'
+const defaultFulfilledHandler = (arg) => arg
+const defaultRejectedHandler = (arg) => {
+  throw arg
+}
 const STATES = {
   pending: 'pending',
   fulfilled: 'fulfilled',
@@ -14,7 +17,7 @@ export default class CustomPromise {
     }
 
     this.PromiseState = STATES.pending
-    this.PromiseRsult = null
+    this.PromiseResult = null
     this.PromiseFulfillReactions = []
     this.PromiseRejectReactions = []
 
@@ -35,7 +38,9 @@ export default class CustomPromise {
 
   isThenable(value) {
     return (
-      value && Object.hasOwn(value, 'then') && typeof value.then === 'function'
+      value !== null &&
+      (typeof value === 'object' || typeof value === 'function') &&
+      typeof value.then === 'function'
     )
   }
 
@@ -50,8 +55,10 @@ export default class CustomPromise {
     }
 
     this.PromiseState = STATES.fulfilled
-    this.PromiseRsult = result
-    this.PromiseFulfillReactions.forEach((onFulfilled) => onFulfilled(result))
+    this.PromiseResult = result
+    this.PromiseFulfillReactions.forEach((onFulfilled) => {
+      setTimeout(() => onFulfilled(result), 0)
+    })
   }
 
   reject(error) {
@@ -60,16 +67,58 @@ export default class CustomPromise {
     }
 
     this.PromiseState = STATES.rejected
-    this.PromiseRsult = error
-    this.PromiseRejectReactions.forEach((onRejected) => onRejected(error))
+    this.PromiseResult = error
+    this.PromiseRejectReactions.forEach((onRejected) => {
+      setTimeout(() => onRejected(error), 0)
+    })
   }
 
-  then(onFunfilled, onRejected) {
-    return new CustomPromise()
+  then(onFulfulled, onRejected) {
+    return new CustomPromise((resolve, reject) => {
+      const onFulfilledHandler =
+        typeof onFulfulled === 'function'
+          ? onFulfulled
+          : defaultFulfilledHandler
+
+      const onRejectedHandler =
+        typeof onRejected === 'function' ? onRejected : defaultRejectedHandler
+
+      const onFulfilledReaction = (result) => {
+        try {
+          resolve(onFulfilledHandler(result))
+        } catch (e) {
+          reject(e)
+        }
+      }
+
+      const onRejectedReaction = (error) => {
+        try {
+          resolve(onRejectedHandler(error))
+        } catch (e) {
+          reject(e)
+        }
+      }
+
+      if (this.PromiseState === STATES.fulfilled) {
+        setTimeout(() => onFulfilledReaction(this.PromiseResult), 0)
+        return
+      }
+
+      if (this.PromiseState === STATES.rejected) {
+        setTimeout(() => onRejectedReaction(this.PromiseResult), 0)
+        return
+      }
+
+      this.PromiseFulfillReactions.push(onFulfilledReaction)
+      this.PromiseRejectReactions.push(onRejectedReaction)
+    })
   }
 
-  catch(onRejected) {}
+  catch(onRejected) {
+    return this.then(defaultFulfilledHandler, onRejected)
+  }
 }
+
 // */
 
 /* // example

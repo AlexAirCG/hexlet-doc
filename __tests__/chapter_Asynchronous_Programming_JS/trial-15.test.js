@@ -145,3 +145,36 @@ test('event loop', async () => {
   await processedRejectedPromise.then(() => rejectMessages.push(resolveMessage))
   expect(rejectMessages).toEqual(expectedRejectMessages)
 })
+
+test('isThenable()', () => {
+  const promise = new CustomPromise(() => {})
+
+  // thenable
+  expect(promise.isThenable(new CustomPromise(() => {}))).toBe(true) // then в прототипе класса
+  expect(promise.isThenable({ then: () => {} })).toBe(true)
+  const functionWithThen = () => {}
+  functionWithThen.then = () => {}
+  expect(promise.isThenable(functionWithThen)).toBe(true)
+
+  // не thenable
+  expect(promise.isThenable(null)).toBe(false)
+  expect(promise.isThenable(undefined)).toBe(false)
+  expect(promise.isThenable(5)).toBe(false)
+  expect(promise.isThenable('then')).toBe(false)
+  expect(promise.isThenable({})).toBe(false)
+  expect(promise.isThenable({ then: 'catch' })).toBe(false)
+})
+
+test('then() returns a promise from the handler', async () => {
+  const resolvedPromise = CustomPromise.resolve(1)
+
+  const modifiedPromise = resolvedPromise.then(() =>
+    CustomPromise.resolve(resolveMessage),
+  )
+  expect(await modifiedPromise).toEqual(resolveMessage)
+
+  const rejectedModifiedPromise = resolvedPromise.then(() =>
+    CustomPromise.reject(rejectError),
+  )
+  await expect(rejectedModifiedPromise).rejects.toThrow(rejectError)
+})
